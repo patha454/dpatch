@@ -20,6 +20,7 @@ int main(int argc, char** argv)
     if (target_handle == NULL)
     {
         syslog(LOG_ERR, "dlopen could not load the target '%s.'", target);
+        exit(EXIT_FAILURE);
     }
     closelog();
     exit(EXIT_SUCCESS);
