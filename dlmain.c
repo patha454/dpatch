@@ -1,17 +1,26 @@
 #include <dlfcn.h>
+#include <syslog.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#define PROGRAM_IDENT "dpatch"
 
 int main(int argc, char** argv)
 {
     char* target = argv[1];
     void* target_handle = NULL;
+    openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     if (argc < 2)
     {
-        fprintf(stderr, "%s: Requires a target program as an argument.\n", __FILE__);
-        return EXIT_FAILURE;
+        syslog(LOG_ERR, "A target program must be provided as an argument.");
+        closelog();
+        exit(EXIT_FAILURE);
     }
     target_handle = dlopen(target, RTLD_LAZY);
-    printf("Target handle: 0x%p\n", target_handle);
-    return EXIT_SUCCESS;
+    if (target_handle == NULL)
+    {
+        syslog(LOG_ERR, "dlopen could not load the target '%s.'", target);
+    }
+    closelog();
+    exit(EXIT_SUCCESS);
 }
