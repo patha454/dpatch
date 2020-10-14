@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.16)
 
 project(
     dpatch_executable
@@ -13,6 +13,13 @@ set_property(TARGET dpatch PROPERTY C_STANDARD 99)
 
 target_link_libraries(dpatch PUBLIC ${CMAKE_DL_LIBS})
 
-add_compile_options(-W -Wall -Wextra -Werror -pedantic -std=c99)
+target_compile_options(
+    dpatch PRIVATE
+    "SHELL:-W"
+    "SHELL:-Wall"
+    "SHELL:-Wextra"
+    "SHELL:-Werror"
+    "SHELL:-pedantic"
+)
 
 install(TARGETS dpatch RUNTIME)
