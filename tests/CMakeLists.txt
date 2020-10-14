@@ -7,7 +7,7 @@ project(
     LANGUAGES C
 )
 
-add_executable(basic_test basic.c)
+add_executable(basic_test ${PROJECT_SOURCE_DIR}/basic.c)
 
 # `dpatch's` targets must expose all their symbols as dynamic symbols so
 # `dpatch can manipulate them with `dlopen` and friends, as well as to
