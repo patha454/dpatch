@@ -10,8 +10,8 @@ You'll need to build `dpatch` and a target program to get started.
 The target program must have its symbols exported as dynamic symbols, which is a known limitation of `dpatch`. The `dpatch` repository comes with several demonstration programs pre-configured for building and using.
 
 ```sh
-# Configure build scripts into `./.build`.
-$ cmake -B build
+# Configure build scripts into `./build`.
+$ cmake -B build .
 
 # Build the configured targets in ./build`.
 $ cmake --build build
