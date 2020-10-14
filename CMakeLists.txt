@@ -8,7 +8,7 @@ project(
 )
 
 add_subdirectory(dpatch)
-add_subdirectory(tests)
+add_subdirectory(demo)
 
 set(CPACK_PACKAGE_VENDOR "H Paterson")
 set(CPACK_PACKAGE_CONTACT "H Paterson <harley.paterson@postgrad.otago.ac.nz>")

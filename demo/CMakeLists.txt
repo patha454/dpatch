@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.7)
 
 project(
-    dpatch_tests
+    dpatch_demos
     VERSION 0.0.0
-    DESCRIPTION "Tests and test targets for `dpatch`."
+    DESCRIPTION "Demonstration target programs `dpatch`."
     LANGUAGES C
 )
 
