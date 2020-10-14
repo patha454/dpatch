@@ -31,10 +31,10 @@ int main(int argc, char** argv)
      * and the design of `dlfcn` forces us to make the cast. Disable pedantic 
      * errors for the cast.
      */
-    /*#pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wpedantic" */
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
     target_start = (void (*)(void)) dlsym(target_handle, START_SYMBOL);
-    /*#pragma GCC diagnostic pop */
+    #pragma GCC diagnostic pop
     if (target_start == NULL)
     {
         syslog(
