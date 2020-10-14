@@ -1,3 +1,11 @@
+cmake_minimum_required(VERSION 3.7)
+
+project(
+    dpatch_tests
+    VERSION 0.0.0
+    DESCRIPTION "Tests and test targets for `dpatch`."
+    LANGUAGES C
+)
 
 add_executable(basic_test basic.c)
 
