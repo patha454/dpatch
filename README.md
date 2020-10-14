@@ -36,7 +36,7 @@ Hello, world!
 The basic build commands are the standard CMake commands:
 
 ```sh
-# Configure build scripts in `/.build` for the platform default build tool.
+# Configure build scripts in `/build` for the platform default build tool.
 # This will probably be UNIX Makefiles on most Linux systems.
 $ cmake -B build
 
