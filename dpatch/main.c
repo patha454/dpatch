@@ -1,10 +1,55 @@
 #include <dlfcn.h>
+#include <unistd.h>
 #include <syslog.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h>
 
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"
+
+/**
+ * Indicates the success or failure of an operation by dpatch.
+ */
+typedef enum
+{
+    /** Success. */
+    DPATCH_STATUS_OK,
+
+    /** General or unspecified error. */
+    DPATCH_STATUS_ERROR,
+} dpatch_status;
+
+/**
+ * Changes the memory protection as needed, adjusting `addr` and `len` to meet
+ * the page boundary requirements of `mprotect` if required.
+ *
+ * @param addr  Location to modify permissions for.
+ * @param len   Length of the segment to adjust.
+ * @param prot  The new memory protection mode bits.
+ * @return      The success (or not) or the operation.
+ */
+dpatch_status mprotect_round(intptr_t addr, size_t len, int prot)
+{
+    intptr_t delta = 0;
+    long page_size = sysconf(_SC_PAGESIZE);
+    if (page_size == -1)
+    {
+        syslog(LOG_ERR, "The page size could not be detected using `sysconf`.");
+        return DPATCH_STATUS_ERROR;
+    }
+    delta = addr % page_size;
+    addr -= delta;
+    len += delta;
+    #pragma message "`mprotect` on memory not acquired by `mmap` is non-POSIX compliant Linux extension."
+    if (mprotect((void*) addr, len, prot) == -1)
+    {
+        syslog(LOG_ERR, "The memory protection could not be modified.");
+        return DPATCH_STATUS_ERROR;
+    }
+    return DPATCH_STATUS_OK;
+}
 
 int main(int argc, char** argv)
 {
@@ -45,6 +90,7 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
+    mprotect_round((intptr_t) target_handle, 8, PROT_READ | PROT_WRITE | PROT_EXEC);
     target_start();
     closelog();
     exit(EXIT_SUCCESS);
