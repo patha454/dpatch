@@ -90,7 +90,11 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
-    mprotect_round((intptr_t) target_handle, 8, PROT_READ | PROT_WRITE | PROT_EXEC);
+    mprotect_round(
+        (intptr_t) target_handle,
+        8,
+        PROT_READ | PROT_WRITE | PROT_EXEC
+    );
     target_start();
     closelog();
     exit(EXIT_SUCCESS);
