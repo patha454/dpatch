@@ -22,6 +22,25 @@ typedef enum
 } dpatch_status;
 
 /**
+ * Insert an x64 `UD0` (undefined operation) opcode into the program.
+ *
+ * Inserting and then executing the undefined operation should cause a runtime
+ * fault.
+ *
+ * @param addr  Address to start the opcode ad.
+ */ 
+void insert_undefied_op(intptr_t addr)
+{
+    /* Assume we're compiling for x64, so this should already be little-endian,
+     * as an x64 CPU expects its instructions to be.
+     */
+    const uint16_t x64_ud0 = 0x0b0f;
+    uint16_t* const target = (uint16_t*) addr;
+    *target = x64_ud0;
+    return;
+}
+
+/**
  * Changes the memory protection as needed, adjusting `addr` and `len` to meet
  * the page boundary requirements of `mprotect` if required.
  *
@@ -47,6 +66,32 @@ dpatch_status mprotect_round(intptr_t addr, size_t len, int prot)
     {
         syslog(LOG_ERR, "The memory protection could not be modified.");
         return DPATCH_STATUS_ERROR;
+    }
+    return DPATCH_STATUS_OK;
+}
+
+/**
+ * Attempt to modify the program code at a selected address.
+ *
+ * `attempt_metamorphosis` will attempt to insert an undefined opcode at the
+ * target address to prove we can modify the running binary.
+ *
+ * @param addr  The base address to attempt to modify.
+ * @return      The success, or otherwise, of the operation.
+ */
+dpatch_status attempt_metamorphosis(intptr_t addr)
+{
+    dpatch_status status = DPATCH_STATUS_OK;
+    status = mprotect_round(addr, 2, PROT_READ | PROT_WRITE | PROT_EXEC);
+    if (status != DPATCH_STATUS_OK)
+    {
+        return status;
+    }
+    insert_undefied_op(addr);
+    status = mprotect_round(addr, 2, PROT_READ | PROT_EXEC);
+    if (status != DPATCH_STATUS_OK)
+    {
+        return status;
     }
     return DPATCH_STATUS_OK;
 }
@@ -90,11 +135,7 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
-    mprotect_round(
-        (intptr_t) target_handle,
-        8,
-        PROT_READ | PROT_WRITE | PROT_EXEC
-    );
+    attempt_metamorphosis((intptr_t) target_start);
     target_start();
     closelog();
     exit(EXIT_SUCCESS);
