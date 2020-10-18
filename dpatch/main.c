@@ -1,11 +1,11 @@
 #include <dlfcn.h>
-#include <unistd.h>
-#include <syslog.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <syslog.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"
@@ -22,6 +22,9 @@ typedef enum
     DPATCH_STATUS_ERROR,
 } dpatch_status;
 
+/**
+ * A (potentially variable length) binary instruction.
+ */
 struct Opcode
 {
     /** Length of the instruction, in bytes. */
@@ -75,6 +78,19 @@ dpatch_status mprotect_round(intptr_t addr, size_t len, int prot)
     return DPATCH_STATUS_OK;
 }
 
+/**
+ * Insert an opcode into the program segment.
+ *
+ * @note `insert_op` does not check the address is a valid range, or even in
+ * the code segment. `insert_op` assumes the target address range is in the
+ * code segment when it resets the memory permissions to `PROT_READ |
+ * PROT_EXEC`. If the target is not in the code segment, you may get set faults
+ * if later code assumes the target address is writable.
+ *
+ * @param addr  The address to insert code into.
+ * @param op    The bytecode to insert into the segment.
+ * @return      The success of the operation, or an error code.
+ */
 dpatch_status insert_op(intptr_t addr, struct Opcode op)
 {
     dpatch_status status = DPATCH_STATUS_OK;
