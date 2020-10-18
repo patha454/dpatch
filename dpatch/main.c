@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 
 #define PROGRAM_IDENT "dpatch"
@@ -21,24 +22,28 @@ typedef enum
     DPATCH_STATUS_ERROR,
 } dpatch_status;
 
-/**
- * Insert an x64 `UD0` (undefined operation) opcode into the program.
- *
- * Inserting and then executing the undefined operation should cause a runtime
- * fault.
- *
- * @param addr  Address to start the opcode ad.
- */ 
-void insert_undefied_op(intptr_t addr)
+struct Opcode
 {
-    /* Assume we're compiling for x64, so this should already be little-endian,
-     * as an x64 CPU expects its instructions to be.
+    /** Length of the instruction, in bytes. */
+    uint8_t length;
+
+    /**
+     * Instruction stored little endian.
+     * 
+     * The max length of an x64 instruction is 15 bytes.
      */
-    const uint16_t x64_ud0 = 0x0b0f;
-    uint16_t* const target = (uint16_t*) addr;
-    *target = x64_ud0;
-    return;
-}
+    uint8_t bytecode[15];
+};
+
+/**
+ * x64 `Undefined Operation 2` opcode.
+ *
+ * Guaranteed to generate an `Illegal instruction` trap.
+ */
+const struct Opcode X64_UD2 = 
+{
+    2,  {0x0f, 0x0b}
+};
 
 /**
  * Changes the memory protection as needed, adjusting `addr` and `len` to meet
@@ -70,25 +75,16 @@ dpatch_status mprotect_round(intptr_t addr, size_t len, int prot)
     return DPATCH_STATUS_OK;
 }
 
-/**
- * Attempt to modify the program code at a selected address.
- *
- * `attempt_metamorphosis` will attempt to insert an undefined opcode at the
- * target address to prove we can modify the running binary.
- *
- * @param addr  The base address to attempt to modify.
- * @return      The success, or otherwise, of the operation.
- */
-dpatch_status attempt_metamorphosis(intptr_t addr)
+dpatch_status insert_op(intptr_t addr, struct Opcode op)
 {
     dpatch_status status = DPATCH_STATUS_OK;
-    status = mprotect_round(addr, 2, PROT_READ | PROT_WRITE | PROT_EXEC);
+    status = mprotect_round(addr, op.length, PROT_READ | PROT_WRITE | PROT_EXEC);
     if (status != DPATCH_STATUS_OK)
     {
         return status;
     }
-    insert_undefied_op(addr);
-    status = mprotect_round(addr, 2, PROT_READ | PROT_EXEC);
+    memcpy((void*) addr, &op.bytecode, op.length);
+    status = mprotect_round(addr, op.length, PROT_READ | PROT_EXEC);
     if (status != DPATCH_STATUS_OK)
     {
         return status;
@@ -135,7 +131,7 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
-    attempt_metamorphosis((intptr_t) target_start);
+    insert_op((intptr_t) target_start, X64_UD2);
     target_start();
     closelog();
     exit(EXIT_SUCCESS);
