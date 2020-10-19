@@ -8,7 +8,7 @@ project(
 )
 
 add_executable(hello_world ${PROJECT_SOURCE_DIR}/hello_world.c)
-
+add_executable(print_load_address ${PROJECT_SOURCE_DIR}/print_load_address.c)
 # `dpatch's` targets must expose all their symbols as dynamic symbols so
 # `dpatch can manipulate them with `dlopen` and friends, as well as to
 # easily generate backtraces for checking function activeness.
@@ -20,6 +20,7 @@ add_executable(hello_world ${PROJECT_SOURCE_DIR}/hello_world.c)
 # writing dynamic patching demonstrations, not run time dynamic
 # linker-loaders.
 set_property(TARGET hello_world PROPERTY ENABLE_EXPORTS 1)
+set_property(TARGET print_load_address PROPERTY ENABLE_EXPORTS 1)
 
-install(TARGETS hello_world RUNTIME DESTINATION dpatch/demo)
+install(TARGETS hello_world print_load_address RUNTIME DESTINATION dpatch/demo)
 
