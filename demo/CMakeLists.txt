@@ -9,6 +9,8 @@ project(
 
 add_executable(hello_world ${PROJECT_SOURCE_DIR}/hello_world.c)
 add_executable(print_load_address ${PROJECT_SOURCE_DIR}/print_load_address.c)
+add_executable(self_patch ${PROJECT_SOURCE_DIR}/self_patch.c)
+
 # `dpatch's` targets must expose all their symbols as dynamic symbols so
 # `dpatch can manipulate them with `dlopen` and friends, as well as to
 # easily generate backtraces for checking function activeness.
@@ -21,6 +23,15 @@ add_executable(print_load_address ${PROJECT_SOURCE_DIR}/print_load_address.c)
 # linker-loaders.
 set_property(TARGET hello_world PROPERTY ENABLE_EXPORTS 1)
 set_property(TARGET print_load_address PROPERTY ENABLE_EXPORTS 1)
+set_property(TARGET self_patch PROPERTY ENABLE_EXPORTS 1)
 
-install(TARGETS hello_world print_load_address RUNTIME DESTINATION dpatch/demo)
+install(
+    TARGETS
+        hello_world
+        print_load_address
+        self_patch
+    RUNTIME 
+    DESTINATION
+        dpatch/demo
+)
 
