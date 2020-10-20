@@ -6,37 +6,11 @@
 #include <syslog.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include "code_generator.h"
+#include "status.h"
 
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"
-
-/**
- * Indicates the success or failure of an operation by dpatch.
- */
-typedef enum
-{
-    /** Success. */
-    DPATCH_STATUS_OK,
-
-    /** General or unspecified error. */
-    DPATCH_STATUS_ERROR,
-} dpatch_status;
-
-/**
- * A (potentially variable length) binary instruction.
- */
-struct Opcode
-{
-    /** Length of the instruction, in bytes. */
-    uint8_t length;
-
-    /**
-     * Instruction stored little endian.
-     * 
-     * The max length of an x64 instruction is 15 bytes.
-     */
-    uint8_t bytecode[15];
-};
 
 /**
  * x64 `Undefined Operation 2` opcode.
