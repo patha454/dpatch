@@ -13,6 +13,8 @@ set_property(TARGET dpatch PROPERTY C_STANDARD 99)
 
 target_link_libraries(dpatch PUBLIC ${CMAKE_DL_LIBS})
 
+target_include_directories(dpatch PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
 target_compile_options(
     dpatch PRIVATE
     "SHELL:-W"
