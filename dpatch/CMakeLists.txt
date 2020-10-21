@@ -7,7 +7,10 @@ project(
     LANGUAGES C
 )
 
-add_executable(dpatch ${PROJECT_SOURCE_DIR}/main.c)
+add_executable(dpatch 
+    ${PROJECT_SOURCE_DIR}/main.c
+    ${PROJECT_SOURCE_DIR}/metamorphosis.c
+)
 
 set_property(TARGET dpatch PROPERTY C_STANDARD 99)
 
