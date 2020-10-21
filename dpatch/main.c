@@ -18,6 +18,7 @@ int main(int argc, char** argv)
     char* target = argv[1];
     void* target_handle = NULL;
     void (* target_start)(void) = NULL;
+    struct Opcode opcode = { 0 };
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     if (argc < 2)
     {
@@ -52,7 +53,12 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
-    insert_op((intptr_t) target_start, X64_UD2);
+    if (generate_undefined_opcode(&opcode) != DPATCH_STATUS_OK)
+    {
+        syslog(LOG_ERR, "Could not generate the undefined opcode.");
+        exit(EXIT_FAILURE);
+    }
+    insert_op((intptr_t) target_start, opcode);
     target_start();
     closelog();
     exit(EXIT_SUCCESS);
