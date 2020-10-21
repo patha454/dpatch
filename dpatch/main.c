@@ -13,16 +13,6 @@
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"
 
-/**
- * x64 `Undefined Operation 2` opcode.
- *
- * Guaranteed to generate an `Illegal instruction` trap.
- */
-const struct Opcode X64_UD2 = 
-{
-    2,  {0x0f, 0x0b}
-};
-
 int main(int argc, char** argv)
 {
     char* target = argv[1];

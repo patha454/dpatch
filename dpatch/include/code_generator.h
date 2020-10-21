@@ -37,4 +37,14 @@ struct Opcode
     uint8_t bytecode[DPATCH_MAX_OPCODE_LEN];
 };
 
+/**
+ * x64 `Undefined Operation 2` opcode.
+ *
+ * Guaranteed to generate an `Illegal instruction` trap.
+ */
+const struct Opcode X64_UD2 = 
+{
+    2,  {0x0f, 0x0b}
+};
+
 #endif
