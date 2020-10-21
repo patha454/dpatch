@@ -13,6 +13,7 @@
 #define DPATCH_INCLUDE_CODE_GENERATOR_H_
 
 #include <stdint.h>
+#include "status.h"
 
 /** Maximum supported opcode length, in bytes.
  *
@@ -38,13 +39,11 @@ struct Opcode
 };
 
 /**
- * x64 `Undefined Operation 2` opcode.
+ * Generate an opcode guaranteed to be undefined.
  *
- * Guaranteed to generate an `Illegal instruction` trap.
+ * @param result    Location to store the opcode.
+ * @return          The success, or not, of the generation.
  */
-const struct Opcode X64_UD2 = 
-{
-    2,  {0x0f, 0x0b}
-};
+dpatch_status generate_undefined_opcode(struct Opcode* result);
 
 #endif
