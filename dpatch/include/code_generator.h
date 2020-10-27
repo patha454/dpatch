@@ -46,4 +46,13 @@ struct Opcode
  */
 dpatch_status generate_undefined_opcode(struct Opcode* result);
 
+/**
+ * Generate an opcode guaranteed to be undefined.
+ *
+ * @param result    Location to store the opcode.
+ * @param addr      Address to jump to.
+ * @return          The success, or not, of the generation.
+ */
+dpatch_status generate_long_jump(struct Opcode* result, intptr_t addr);
+
 #endif
