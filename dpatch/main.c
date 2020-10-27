@@ -53,9 +53,9 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
-    if (generate_undefined_opcode(&opcode) != DPATCH_STATUS_OK)
+    if (generate_long_jump(&opcode, (intptr_t) target_start) != DPATCH_STATUS_OK)
     {
-        syslog(LOG_ERR, "Could not generate the undefined opcode.");
+        syslog(LOG_ERR, "Could not generate the new opcode.");
         exit(EXIT_FAILURE);
     }
     insert_op((intptr_t) target_start, opcode);
