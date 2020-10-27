@@ -12,11 +12,15 @@
 
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"
+#define PATCH_FROM "alpha"
+#define PATCH_TO "bravo"
 
 int main(int argc, char** argv)
 {
     char* target = argv[1];
     void* target_handle = NULL;
+    void* patch_from = NULL;
+    void* patch_to = NULL;
     void (* target_start)(void) = NULL;
     struct Opcode opcode = { 0 };
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
@@ -42,6 +46,8 @@ int main(int argc, char** argv)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wpedantic"
     target_start = (void (*)(void)) dlsym(target_handle, START_SYMBOL);
+    patch_from = (void (*)(void)) dlsym(target_handle, PATCH_FROM);
+    patch_to = (void (*)(void)) dlsym(target_handle, PATCH_TO);
     #pragma GCC diagnostic pop
     if (target_start == NULL)
     {
@@ -53,12 +59,12 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
-    if (generate_long_jump(&opcode, (intptr_t) target_start) != DPATCH_STATUS_OK)
+    if (generate_long_jump(&opcode, (intptr_t) patch_to) != DPATCH_STATUS_OK)
     {
         syslog(LOG_ERR, "Could not generate the new opcode.");
         exit(EXIT_FAILURE);
     }
-    insert_op((intptr_t) target_start, opcode);
+    insert_op((intptr_t) patch_from, opcode);
     target_start();
     closelog();
     exit(EXIT_SUCCESS);
