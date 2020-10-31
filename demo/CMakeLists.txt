@@ -25,6 +25,16 @@ set_property(TARGET hello_world PROPERTY ENABLE_EXPORTS 1)
 set_property(TARGET print_load_address PROPERTY ENABLE_EXPORTS 1)
 set_property(TARGET self_patch PROPERTY ENABLE_EXPORTS 1)
 
+# Some compilers (Clang...) won't mark a program as `PT_DYN`, when the object
+# enables exports, and requires dynamic loading. `dlopen` will requet any
+# object not marked as `PT_DYN`
+#
+# Force the linker to generate a position independent excutable which must
+# be PT_DYN.
+target_link_options(hello_world PRIVATE "-pie")
+target_link_options(print_load_address PRIVATE "-pie")
+target_link_options(self_patch PRIVATE "-pie")
+
 install(
     TARGETS
         hello_world
