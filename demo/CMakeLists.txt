@@ -31,9 +31,11 @@ set_property(TARGET self_patch PROPERTY ENABLE_EXPORTS 1)
 #
 # Force the linker to generate a position independent excutable which must
 # be PT_DYN.
-target_link_options(hello_world PRIVATE "-pie")
-target_link_options(print_load_address PRIVATE "-pie")
-target_link_options(self_patch PRIVATE "-pie")
+if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    target_link_options(hello_world PRIVATE "-pie")
+    target_link_options(print_load_address PRIVATE "-pie")
+    target_link_options(self_patch PRIVATE "-pie")
+endif()
 
 install(
     TARGETS
