@@ -26,7 +26,7 @@ dpatch_status generate_undefined_opcode(struct Opcode* result)
 }
 
 /**
- * Generate an opcode guaranteed to be undefined.
+ * Generate a long jump to a 64-bit address.
  *
  * @param result    Location to store the opcode.
  * @param addr      Address to jump to.
