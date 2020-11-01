@@ -13,6 +13,9 @@
 #include "machine_code.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #define MACHINE_CODE_DEFAULT_LEN 8
 
@@ -136,6 +139,26 @@ void machine_code_append_array(machine_code_t machine_code, size_t length, uint8
 }
 
 /**
+ * Applys `mprotect` to a memory range, rounding if
+ * required to meet page alignment requirements.
+ *
+ * @param address Location to modify permissions for.
+ * @param length Length of the segment to adjust.
+ * @param prot The new memory protection mode bits.
+ */
+void mprotect_round_(intptr_t address, size_t length, int prot)
+{
+    intptr_t delta;
+    long page_size = sysconf(_SC_PAGESIZE);
+    assert(page_size > 0);
+    delta = address % page_size;
+    address -= delta;
+    length += delta;
+    #pragma message "`mprotect` on memory not acquired by `mmap` is a non-POSIX Linux extention."
+    assert(mprotect((void*) address, length, prot) != -1);
+}
+
+/**
  * Insert machine code into a program segment.
  *
  * @param machine_code Handle to the machine code to insert.
@@ -143,7 +166,9 @@ void machine_code_append_array(machine_code_t machine_code, size_t length, uint8
  */
 void machine_code_insert(machine_code_t machine_code, intptr_t address)
 {
-
+    mprotect_round_(address, machine_code->length, PROT_READ | PROT_WRITE | PROT_EXEC);
+    memcpy((void*) address, (void*) machine_code->binary, machine_code->length);
+    mprotect_round_(address, machine_code->length, PROT_READ | PROT_EXEC);
 }
 
 
