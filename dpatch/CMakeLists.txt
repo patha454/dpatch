@@ -11,6 +11,7 @@ add_executable(dpatch
     ${PROJECT_SOURCE_DIR}/main.c
     ${PROJECT_SOURCE_DIR}/metamorphosis.c
     ${PROJECT_SOURCE_DIR}/x64_code_generator.c
+    ${PROJECT_SOURCE_DIR}/machine_code.c
 )
 
 set_property(TARGET dpatch PROPERTY C_STANDARD 99)

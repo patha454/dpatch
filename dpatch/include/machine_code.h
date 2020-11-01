@@ -18,21 +18,6 @@
 #include <stdint.h>
 
 /**
- * Storage for variole length chunks of executable binary.
- */
-struct machine_code
-{
-    /** Length of the binary stored. */
-    size_t length;
-
-    /** Length of memory allocated to the binary. */
-    size_t allocated_length;
-
-    /** The binary data stored. */
-    uint8_t binary[];
-};
-
-/**
  * `machine_code_t` is a handle to a container for machine
  * executable binary code.
  */
@@ -41,7 +26,8 @@ typedef struct machine_code* machine_code_t;
 /**
  * Allocate and initialise a new machine code container.
  *
- * @return A handle to a machine code container.
+ * @return A handle to a machine code container, or `NULL`
+ *         on failure.
  */
 machine_code_t machine_code_new();
 
@@ -76,7 +62,7 @@ void machine_code_append(machine_code_t machine_code, uint8_t byte);
  * @param length Number of bytes to append to the machine code.
  * @param bytes Array of bytes to append
  */
-void machine_code_append_array(machine_code_t machine_code, size_t length, uint8_t byte[]);
+void machine_code_append_array(machine_code_t machine_code, size_t length, uint8_t bytes[]);
 
 /**
  * Insert machine code into a program segment.
