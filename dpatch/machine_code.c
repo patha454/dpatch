@@ -49,7 +49,7 @@ machine_code_t machine_code_new()
     }
     new->length = 0;
     new->allocated_length = MACHINE_CODE_DEFAULT_LEN;
-    new->binary = malloc(MACHINE_CODE_DEFAULT_LEN);
+    new->binary = malloc(new->allocated_length);
     if (new->binary == NULL)
     {
         machine_code_free(new);
