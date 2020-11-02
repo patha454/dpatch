@@ -22,7 +22,8 @@ int main(int argc, char** argv)
     void* patch_from = NULL;
     void* patch_to = NULL;
     void (* target_start)(void) = NULL;
-    machine_code_t machine_code = machine_code_new();
+    machine_code_t machine_code = NULL;
+    machine_code_new(&machine_code);
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     if (argc < 2)
     {

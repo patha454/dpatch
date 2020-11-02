@@ -11,6 +11,7 @@
  */
 
 #include "machine_code.h"
+#include "status.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,38 +38,39 @@ struct machine_code
 /**
  * Allocate and initialise a new machine code container.
  *
- * @return A handle to a machine code container, or `NULL`
- *         on failure.
+ * @param new Location to store new machine code handle.
+ * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-machine_code_t machine_code_new()
+dpatch_status machine_code_new(machine_code_t* new)
 {
-    machine_code_t new = malloc(sizeof *new);
-    if (new == NULL)
+    assert(new != NULL);
+    machine_code_t handle = malloc(sizeof(struct machine_code));
+    *new = handle;
+    if (handle == NULL)
     {
-        return NULL;
+        return DPATCH_STATUS_ENOMEM;
     }
-    new->length = 0;
-    new->allocated_length = MACHINE_CODE_DEFAULT_LEN;
-    new->binary = malloc(new->allocated_length);
-    if (new->binary == NULL)
+    handle->length = 0;
+    handle->allocated_length = MACHINE_CODE_DEFAULT_LEN;
+    handle->binary = malloc(handle->allocated_length);
+    if (handle->binary == NULL)
     {
-        machine_code_free(new);
-        return NULL;
+        machine_code_free(handle);
+        *new = NULL;
+        return DPATCH_STATUS_ENOMEM;
     }
-    return new;
+    return DPATCH_STATUS_OK;
 }
 
 /**
- * Deallocate a machine code container and its contents.
+ * Deallocate a machine code container and free its
+ * contents.
  *
- * @param machine_code Handle to free.
+ * @param machine_code Handle to free and nullify.
  */
 void machine_code_free(machine_code_t machine_code)
 {
-    if (machine_code == NULL)
-    {
-        return;
-    }
+    assert(machine_code != NULL);
     if (machine_code->binary)
     {
         free(machine_code->binary);
@@ -83,12 +85,24 @@ void machine_code_free(machine_code_t machine_code)
  * Grow the memory allocated to a machine code container.
  *
  * @param machine_code Handle to the container to grow.
+ * @return `DPATCH_STATUS_OK` or an error on failure.
  */
-void machine_code_grow(machine_code_t machine_code)
+dpatch_status machine_code_grow(machine_code_t machine_code)
 {
+    void* realloc_result = NULL;
+    assert(machine_code != NULL);
     machine_code->allocated_length *= 2;
-    machine_code->binary = realloc(machine_code->binary, machine_code->allocated_length);
-    assert(machine_code->binary != NULL);
+    realloc_result = realloc(
+        machine_code->binary,
+        machine_code->allocated_length
+    );
+    if (realloc_result == NULL)
+    {
+        machine_code->allocated_length /= 2;
+        return DPATCH_STATUS_ENOMEM;
+    }
+    machine_code->binary = realloc_result;
+    return DPATCH_STATUS_OK;
 }
 
 /**
@@ -100,10 +114,7 @@ void machine_code_grow(machine_code_t machine_code)
  */
 size_t machine_code_length(machine_code_t machine_code)
 {
-    if (machine_code == NULL)
-    {
-        return 0;
-    }
+    assert(machine_code != NULL);
     return machine_code->length;
 }
 
@@ -112,14 +123,22 @@ size_t machine_code_length(machine_code_t machine_code)
  *
  * @param machine_code Handle to the machine code to append.
  * @param byte A byte to append to the machine code.
+ * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-void machine_code_append(machine_code_t machine_code, uint8_t byte)
+dpatch_status machine_code_append(machine_code_t machine_code, uint8_t byte)
 {
+    dpatch_status status = DPATCH_STATUS_OK;
+    assert(machine_code != NULL);
     if (machine_code->length == machine_code->allocated_length)
     {
-        machine_code_grow(machine_code);
+        status = machine_code_grow(machine_code);
+        if (status != DPATCH_STATUS_OK)
+        {
+            return status;
+        }
     }
     machine_code->binary[machine_code->length++] = byte;
+    return DPATCH_STATUS_OK;
 }
 
 /**
@@ -127,20 +146,30 @@ void machine_code_append(machine_code_t machine_code, uint8_t byte)
  *
  * @param machine_code Handle to the machine code to append.
  * @param length Number of bytes to append to the machine code.
- * @param bytes Array of bytes to append
+ * @param bytes Array of bytes to append.
+ * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-void machine_code_append_array(machine_code_t machine_code, size_t length, uint8_t bytes[])
+dpatch_status machine_code_append_array(machine_code_t machine_code, size_t length, uint8_t bytes[])
 {
+    dpatch_status status;
     size_t i = 0;
     for (i = 0; i < length; i++)
     {
-        machine_code_append(machine_code, bytes[i]);
+        status = machine_code_append(machine_code, bytes[i]);
+        if (status != DPATCH_STATUS_OK)
+        {
+            machine_code->length -= i;
+            return status;
+        }
     }
+    return DPATCH_STATUS_OK;
 }
 
 /**
  * Reset the contents of a machine code handle to the empty
  * container.
+ *
+ * @note This does not reset the size of the allocated memory.
  *
  * @param machine_code Handle to the machine code to empty.
  */
@@ -150,23 +179,33 @@ void machine_code_empty(machine_code_t machine_code)
 }
 
 /**
- * Applys `mprotect` to a memory range, rounding if
+ * Applies `mprotect` to a memory range, rounding if
  * required to meet page alignment requirements.
  *
  * @param address Location to modify permissions for.
  * @param length Length of the segment to adjust.
  * @param prot The new memory protection mode bits.
+ * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-void mprotect_round_(intptr_t address, size_t length, int prot)
+dpatch_status mprotect_round_(intptr_t address, size_t length, int prot)
 {
     intptr_t delta;
     long page_size = sysconf(_SC_PAGESIZE);
+    if (page_size < 1)
+    {
+        // Sysconf many not support `_SC_PAGESIZE` on the host.
+        return DPATCH_STATUS_ERROR;
+    }
     assert(page_size > 0);
     delta = address % page_size;
     address -= delta;
     length += delta;
     #pragma message "`mprotect` on memory not acquired by `mmap` is a non-POSIX Linux extention."
-    assert(mprotect((void*) address, length, prot) != -1);
+    if (mprotect((void*) address, length, prot) == -1)
+    {
+        return DPATCH_STATUS_ERROR;
+    }
+    return DPATCH_STATUS_OK;
 }
 
 /**
@@ -174,14 +213,21 @@ void mprotect_round_(intptr_t address, size_t length, int prot)
  *
  * @param machine_code Handle to the machine code to insert.
  * @param address Address to write the code into.
+ * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-void machine_code_insert(machine_code_t machine_code, intptr_t address)
+dpatch_status machine_code_insert(machine_code_t machine_code, intptr_t address)
 {
-    mprotect_round_(address, machine_code->length, PROT_READ | PROT_WRITE | PROT_EXEC);
+    dpatch_status status = DPATCH_STATUS_OK;
+    status = mprotect_round_(address, machine_code->length, PROT_READ | PROT_WRITE | PROT_EXEC);
+    if (status != DPATCH_STATUS_OK)
+    {
+        return DPATCH_STATUS_EMPROT;
+    }
     memcpy((void*) address, (void*) machine_code->binary, machine_code->length);
-    mprotect_round_(address, machine_code->length, PROT_READ | PROT_EXEC);
+    status = mprotect_round_(address, machine_code->length, PROT_READ | PROT_EXEC);
+    if (status != DPATCH_STATUS_OK)
+    {
+        return DPATCH_STATUS_EMPROT;
+    }
+    return DPATCH_STATUS_OK;
 }
-
-
-
-
