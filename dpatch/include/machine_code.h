@@ -65,6 +65,14 @@ void machine_code_append(machine_code_t machine_code, uint8_t byte);
 void machine_code_append_array(machine_code_t machine_code, size_t length, uint8_t bytes[]);
 
 /**
+ * Reset the contents of a machine code handle to the empty
+ * container.
+ *
+ * @param machine_code Handle to the machine code to empty.
+ */
+void machine_code_empty(machine_code_t machine_code);
+
+/**
  * Insert machine code into a program segment.
  *
  * @param machine_code Handle to the machine code to insert.

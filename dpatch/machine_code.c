@@ -139,6 +139,17 @@ void machine_code_append_array(machine_code_t machine_code, size_t length, uint8
 }
 
 /**
+ * Reset the contents of a machine code handle to the empty
+ * container.
+ *
+ * @param machine_code Handle to the machine code to empty.
+ */
+void machine_code_empty(machine_code_t machine_code)
+{
+    machine_code->length = 0;
+}
+
+/**
  * Applys `mprotect` to a memory range, rounding if
  * required to meet page alignment requirements.
  *
