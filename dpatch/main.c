@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include "code_generator.h"
 #include "status.h"
-#include "metamorphosis.h"
 #include "machine_code.h"
 
 #define PROGRAM_IDENT "dpatch"
@@ -60,14 +59,7 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
-    append_undefined_opcode(machine_code);
-    /*
-    if (generate_long_jump(&opcode, (intptr_t) patch_to) != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "Could not generate the new opcode.");
-        exit(EXIT_FAILURE);
-    }*/
-    /*insert_op((intptr_t) patch_from, opcode); */
+    append_long_jump(machine_code, (intptr_t) patch_to);
     machine_code_insert(machine_code, (intptr_t) patch_from);
     target_start();
     closelog();
