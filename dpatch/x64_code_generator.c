@@ -9,20 +9,19 @@
  */
 
 #include "code_generator.h"
+#include "machine_code.h"
 #include "status.h"
 
 /**
- * Generate an opcode guaranteed to be undefined.
+ * Append a guaranteed undefined opcode to a block of machine code.
  *
- * @param result    Location to store the opcode.
+ * @param machine code
  * @return          The success, or not, of the generation.
  */
-dpatch_status generate_undefined_opcode(struct Opcode* result)
+void append_undefined_opcode(machine_code_t machine_code)
 {
-    result->length = 2;
-    result->bytecode[0] = 0x0f;
-    result->bytecode[1] = 0x0b;
-    return DPATCH_STATUS_OK;
+    const uint8_t X64_UD2[] = {0x0f, 0x0b};
+    machine_code_append_array(machine_code, 2, (uint8_t*) X64_UD2);
 }
 
 /**

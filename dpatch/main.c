@@ -9,6 +9,7 @@
 #include "code_generator.h"
 #include "status.h"
 #include "metamorphosis.h"
+#include "machine_code.h"
 
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"
@@ -22,7 +23,7 @@ int main(int argc, char** argv)
     void* patch_from = NULL;
     void* patch_to = NULL;
     void (* target_start)(void) = NULL;
-    struct Opcode opcode = { 0 };
+    machine_code_t machine_code = machine_code_new();
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     if (argc < 2)
     {
@@ -59,12 +60,15 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
+    append_undefined_opcode(machine_code);
+    /*
     if (generate_long_jump(&opcode, (intptr_t) patch_to) != DPATCH_STATUS_OK)
     {
         syslog(LOG_ERR, "Could not generate the new opcode.");
         exit(EXIT_FAILURE);
-    }
-    insert_op((intptr_t) patch_from, opcode);
+    }*/
+    /*insert_op((intptr_t) patch_from, opcode); */
+    machine_code_insert(machine_code, (intptr_t) patch_from);
     target_start();
     closelog();
     exit(EXIT_SUCCESS);

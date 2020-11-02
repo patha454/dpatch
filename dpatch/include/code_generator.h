@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include "status.h"
+#include "machine_code.h"
 
 /** Maximum supported opcode length, in bytes.
  *
@@ -39,12 +40,12 @@ struct Opcode
 };
 
 /**
- * Generate an opcode guaranteed to be undefined.
+ * Append a guaranteed undefined opcode to a block of machine code.
  *
- * @param result    Location to store the opcode.
+ * @param machine code
  * @return          The success, or not, of the generation.
  */
-dpatch_status generate_undefined_opcode(struct Opcode* result);
+void append_undefined_opcode(machine_code_t machine_code);
 
 /**
  * Generate an opcode guaranteed to be undefined.
