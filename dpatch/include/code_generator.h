@@ -20,16 +20,17 @@
  * Append a guaranteed undefined opcode to a block of machine code.
  *
  * @param machine_code The binary container to append to.
- * @return The success, or not, of the generation.
+ * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-void append_undefined_opcode(machine_code_t machine_code);
+dpatch_status append_undefined_opcode(machine_code_t machine_code);
 
 /**
  * Generate an opcode guaranteed to be undefined.
  *
  * @param machine_code The binary container to append to.
  * @param addr Address to jump to.
+ * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-void append_long_jump(machine_code_t machine_code, intptr_t addr);
+dpatch_status append_long_jump(machine_code_t machine_code, intptr_t addr);
 
 #endif

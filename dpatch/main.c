@@ -1,14 +1,10 @@
 #include <dlfcn.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <syslog.h>
-#include <sys/mman.h>
 #include <unistd.h>
 #include "code_generator.h"
 #include "status.h"
-#include "machine_code.h"
 
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"
@@ -23,11 +19,16 @@ int main(int argc, char** argv)
     void* patch_to = NULL;
     void (* target_start)(void) = NULL;
     machine_code_t machine_code = NULL;
-    machine_code_new(&machine_code);
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     if (argc < 2)
     {
         syslog(LOG_ERR, "A target program must be provided as an argument.");
+        closelog();
+        exit(EXIT_FAILURE);
+    }
+    if (machine_code_new(&machine_code) != DPATCH_STATUS_OK)
+    {
+        syslog(LOG_ERR, "machine_code_t could not be initialised.");
         closelog();
         exit(EXIT_FAILURE);
     }
@@ -60,9 +61,16 @@ int main(int argc, char** argv)
         );
         exit(EXIT_FAILURE);
     }
-    append_long_jump(machine_code, (intptr_t) patch_to);
-    machine_code_insert(machine_code, (intptr_t) patch_from);
+    if (append_long_jump(machine_code, (intptr_t) patch_to) != DPATCH_STATUS_OK)
+    {
+        syslog(LOG_ERR, "Failure generating a long jump operation.");
+    }
+    if (machine_code_insert(machine_code, (intptr_t) patch_from) != DPATCH_STATUS_OK)
+    {
+        syslog(LOG_ERR, "Failure inserting new machine code.");
+    }
     target_start();
+    machine_code_free(machine_code);
     closelog();
     exit(EXIT_SUCCESS);
 }
