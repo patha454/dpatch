@@ -22,7 +22,7 @@
  * @param machine_code The binary container to append to.
  * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-dpatch_status append_undefined_opcode(machine_code_t machine_code);
+dpatch_status append_undefined_opcode(machine_code_t* machine_code);
 
 /**
  * Generate an opcode guaranteed to be undefined.
@@ -31,6 +31,6 @@ dpatch_status append_undefined_opcode(machine_code_t machine_code);
  * @param addr Address to jump to.
  * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-dpatch_status append_long_jump(machine_code_t machine_code, intptr_t addr);
+dpatch_status append_long_jump(machine_code_t* machine_code, intptr_t addr);
 
 #endif

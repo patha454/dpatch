@@ -22,7 +22,7 @@
  * `machine_code_t` is a handle to a container for machine
  * executable binary code.
  */
-typedef struct machine_code* machine_code_t;
+typedef struct machine_code machine_code_t;
 
 /**
  * Allocate and initialise a new machine code container.
@@ -30,7 +30,7 @@ typedef struct machine_code* machine_code_t;
  * @param new Location to store new machine code handle.
  * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-dpatch_status machine_code_new(machine_code_t* new);
+dpatch_status machine_code_new(machine_code_t** new);
 
 /**
  * Deallocate a machine code container and free its
@@ -38,7 +38,7 @@ dpatch_status machine_code_new(machine_code_t* new);
  *
  * @param machine_code Handle to free and nullify.
  */
-void machine_code_free(machine_code_t machine_code);
+void machine_code_free(machine_code_t* machine_code);
 
 /**
  * Get the length, in bytes, of binary stored in the
@@ -47,7 +47,7 @@ void machine_code_free(machine_code_t machine_code);
  * @param machine_code Handle to get the length of.
  * @return The length, in bytes, of the `machine_code`.
  */
-size_t machine_code_length(machine_code_t machine_code);
+size_t machine_code_length(machine_code_t* machine_code);
 
 /**
  * Append a byte to the machine code.
@@ -56,7 +56,7 @@ size_t machine_code_length(machine_code_t machine_code);
  * @param byte A byte to append to the machine code.
  * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-dpatch_status machine_code_append(machine_code_t machine_code, uint8_t byte);
+dpatch_status machine_code_append(machine_code_t* machine_code, uint8_t byte);
 /**
  * Append bytes to the end of machine code.
  *
@@ -65,7 +65,7 @@ dpatch_status machine_code_append(machine_code_t machine_code, uint8_t byte);
  * @param bytes Array of bytes to append.
  * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-dpatch_status machine_code_append_array(machine_code_t machine_code, size_t length, uint8_t bytes[]);
+dpatch_status machine_code_append_array(machine_code_t* machine_code, size_t length, uint8_t bytes[]);
 
 /**
  * Reset the contents of a machine code handle to the empty
@@ -75,7 +75,7 @@ dpatch_status machine_code_append_array(machine_code_t machine_code, size_t leng
  *
  * @param machine_code Handle to the machine code to empty.
  */
-void machine_code_empty(machine_code_t machine_code);
+void machine_code_empty(machine_code_t* machine_code);
 
 /**
  * Insert machine code into a program segment.
@@ -84,6 +84,6 @@ void machine_code_empty(machine_code_t machine_code);
  * @param address Address to write the code into.
  * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-dpatch_status machine_code_insert(machine_code_t machine_code, intptr_t address);
+dpatch_status machine_code_insert(machine_code_t* machine_code, intptr_t address);
 
 #endif

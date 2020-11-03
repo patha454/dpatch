@@ -18,7 +18,7 @@
  * @param machine_code The binary container to append to.
  * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-dpatch_status append_undefined_opcode(machine_code_t machine_code)
+dpatch_status append_undefined_opcode(machine_code_t* machine_code)
 {
     const uint8_t X64_UD2[] = {0x0f, 0x0b};
     return machine_code_append_array(machine_code, 2, (uint8_t*) X64_UD2);
@@ -31,7 +31,7 @@ dpatch_status append_undefined_opcode(machine_code_t machine_code)
  * @param addr Address to jump to.
  * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-dpatch_status append_long_jump(machine_code_t machine_code, intptr_t addr)
+dpatch_status append_long_jump(machine_code_t* machine_code, intptr_t addr)
 {
     dpatch_status status = DPATCH_STATUS_OK;
     const uint8_t LJMP_OPCODE = 0xff;

@@ -41,10 +41,10 @@ struct machine_code
  * @param new Location to store new machine code handle.
  * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-dpatch_status machine_code_new(machine_code_t* new)
+dpatch_status machine_code_new(machine_code_t** new)
 {
     assert(new != NULL);
-    machine_code_t handle = malloc(sizeof(struct machine_code));
+    machine_code_t* handle = malloc(sizeof(struct machine_code));
     *new = handle;
     if (handle == NULL)
     {
@@ -68,7 +68,7 @@ dpatch_status machine_code_new(machine_code_t* new)
  *
  * @param machine_code Handle to free and nullify.
  */
-void machine_code_free(machine_code_t machine_code)
+void machine_code_free(machine_code_t* machine_code)
 {
     assert(machine_code != NULL);
     if (machine_code->binary)
@@ -87,7 +87,7 @@ void machine_code_free(machine_code_t machine_code)
  * @param machine_code Handle to the container to grow.
  * @return `DPATCH_STATUS_OK` or an error on failure.
  */
-dpatch_status machine_code_grow(machine_code_t machine_code)
+dpatch_status machine_code_grow(machine_code_t* machine_code)
 {
     void* realloc_result = NULL;
     assert(machine_code != NULL);
@@ -112,7 +112,7 @@ dpatch_status machine_code_grow(machine_code_t machine_code)
  * @param machine_code Handle to get the length of.
  * @return The length, in bytes, of the `machine_code`.
  */
-size_t machine_code_length(machine_code_t machine_code)
+size_t machine_code_length(machine_code_t* machine_code)
 {
     assert(machine_code != NULL);
     return machine_code->length;
@@ -125,7 +125,7 @@ size_t machine_code_length(machine_code_t machine_code)
  * @param byte A byte to append to the machine code.
  * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-dpatch_status machine_code_append(machine_code_t machine_code, uint8_t byte)
+dpatch_status machine_code_append(machine_code_t* machine_code, uint8_t byte)
 {
     dpatch_status status = DPATCH_STATUS_OK;
     assert(machine_code != NULL);
@@ -149,7 +149,7 @@ dpatch_status machine_code_append(machine_code_t machine_code, uint8_t byte)
  * @param bytes Array of bytes to append.
  * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-dpatch_status machine_code_append_array(machine_code_t machine_code, size_t length, uint8_t bytes[])
+dpatch_status machine_code_append_array(machine_code_t* machine_code, size_t length, uint8_t bytes[])
 {
     dpatch_status status;
     size_t i = 0;
@@ -173,7 +173,7 @@ dpatch_status machine_code_append_array(machine_code_t machine_code, size_t leng
  *
  * @param machine_code Handle to the machine code to empty.
  */
-void machine_code_empty(machine_code_t machine_code)
+void machine_code_empty(machine_code_t* machine_code)
 {
     machine_code->length = 0;
 }
@@ -215,7 +215,7 @@ dpatch_status mprotect_round_(intptr_t address, size_t length, int prot)
  * @param address Address to write the code into.
  * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
  */
-dpatch_status machine_code_insert(machine_code_t machine_code, intptr_t address)
+dpatch_status machine_code_insert(machine_code_t* machine_code, intptr_t address)
 {
     dpatch_status status = DPATCH_STATUS_OK;
     status = mprotect_round_(address, machine_code->length, PROT_READ | PROT_WRITE | PROT_EXEC);
