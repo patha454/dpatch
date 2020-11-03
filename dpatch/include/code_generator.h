@@ -12,47 +12,25 @@
 #ifndef DPATCH_INCLUDE_CODE_GENERATOR_H_
 #define DPATCH_INCLUDE_CODE_GENERATOR_H_
 
-#include <stdint.h>
+#include "machine_code.h"
 #include "status.h"
-
-/** Maximum supported opcode length, in bytes.
- *
- * @note This is arbitrary, but matched to x64's maximum
- * legal opcode length.
- */
-#define DPATCH_MAX_OPCODE_LEN 15
+#include <stdint.h>
 
 /**
- * A (potentially variable length) binary instruction.
+ * Append a guaranteed undefined opcode to a block of machine code.
+ *
+ * @param machine_code The binary container to append to.
+ * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-struct Opcode
-{
-    /** Length of the instruction, in bytes. */
-    uint8_t length;
-
-    /**
-     * Instruction stored little endian.
-     * 
-     * The max length of an x64 instruction is 15 bytes.
-     */
-    uint8_t bytecode[DPATCH_MAX_OPCODE_LEN];
-};
+dpatch_status append_undefined_opcode(machine_code_t* machine_code);
 
 /**
  * Generate an opcode guaranteed to be undefined.
  *
- * @param result    Location to store the opcode.
- * @return          The success, or not, of the generation.
+ * @param machine_code The binary container to append to.
+ * @param addr Address to jump to.
+ * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
-dpatch_status generate_undefined_opcode(struct Opcode* result);
-
-/**
- * Generate an opcode guaranteed to be undefined.
- *
- * @param result    Location to store the opcode.
- * @param addr      Address to jump to.
- * @return          The success, or not, of the generation.
- */
-dpatch_status generate_long_jump(struct Opcode* result, intptr_t addr);
+dpatch_status append_long_jump(machine_code_t* machine_code, intptr_t addr);
 
 #endif
