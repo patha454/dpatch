@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     target_handle = dlopen(target, RTLD_LAZY);
     if (target_handle == NULL)
     {
-        syslog(LOG_ERR, "dlopen could not load the target '%s.'", target);
+        syslog(LOG_ERR, "%s", dlerror());
         exit(EXIT_FAILURE);
     }
     /*
