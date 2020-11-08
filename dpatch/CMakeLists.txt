@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(
-    dpatch_executable
+    dpatch_library
     VERSION 0.0.0
     DESCRIPTION "Experimental dynamic software updating framework."
     LANGUAGES C
 )
 
-add_executable(dpatch 
+add_library(dpatch SHARED
     ${PROJECT_SOURCE_DIR}/main.c
     ${PROJECT_SOURCE_DIR}/x64_code_generator.c
     ${PROJECT_SOURCE_DIR}/machine_code.c
@@ -18,6 +18,8 @@ set_property(TARGET dpatch PROPERTY C_STANDARD 99)
 target_link_libraries(dpatch PUBLIC ${CMAKE_DL_LIBS})
 
 target_include_directories(dpatch PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+target_compile_definitions(dpatch PRIVATE _GNU_SOURCE)
 
 target_compile_options(
     dpatch PRIVATE

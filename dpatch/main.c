@@ -1,4 +1,5 @@
 #include <dlfcn.h>
+#include <link.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <syslog.h>
@@ -10,6 +11,14 @@
 #define START_SYMBOL "main"
 #define PATCH_FROM "alpha"
 #define PATCH_TO "bravo"
+
+#define UNUSED(x) ((void)(x))
+
+unsigned int la_version(unsigned int version)
+{
+    UNUSED(version);
+    return LAV_CURRENT;
+}
 
 int main(int argc, char** argv)
 {
