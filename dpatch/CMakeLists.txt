@@ -30,4 +30,4 @@ target_compile_options(
     "SHELL:-pedantic"
 )
 
-install(TARGETS dpatch RUNTIME)
+install(TARGETS dpatch LIBRARY)
