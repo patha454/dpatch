@@ -7,6 +7,8 @@
 #include "code_generator.h"
 #include "status.h"
 
+#include <stdio.h>
+
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"
 #define PATCH_FROM "alpha"
@@ -20,28 +22,23 @@ unsigned int la_version(unsigned int version)
     return LAV_CURRENT;
 }
 
-int main(int argc, char** argv)
+void la_preinit(uintptr_t* cookie)
 {
-    char* target = argv[1];
+    UNUSED(cookie);
+    printf("Preinit hook called\n");
     void* target_handle = NULL;
     void* patch_from = NULL;
     void* patch_to = NULL;
     void (* target_start)(void) = NULL;
     machine_code_t* machine_code = NULL;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
-    if (argc < 2)
-    {
-        syslog(LOG_ERR, "A target program must be provided as an argument.");
-        closelog();
-        exit(EXIT_FAILURE);
-    }
     if (machine_code_new(&machine_code) != DPATCH_STATUS_OK)
     {
         syslog(LOG_ERR, "machine_code_t could not be initialised.");
         closelog();
         exit(EXIT_FAILURE);
     }
-    target_handle = dlopen(target, RTLD_LAZY);
+    target_handle = dlopen(NULL, RTLD_LAZY);
     if (target_handle == NULL)
     {
         syslog(LOG_ERR, "%s", dlerror());
@@ -64,8 +61,7 @@ int main(int argc, char** argv)
     {
         syslog(
             LOG_ERR,
-            "The '%s:%s' symbol could not be located.",
-            target,
+            "The target's '%s' symbol could not be located.",
             START_SYMBOL
         );
         exit(EXIT_FAILURE);
