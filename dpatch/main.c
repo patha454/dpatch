@@ -1,4 +1,5 @@
 #include <dlfcn.h>
+#include <link.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <syslog.h>
@@ -11,28 +12,66 @@
 #define PATCH_FROM "alpha"
 #define PATCH_TO "bravo"
 
-int main(int argc, char** argv)
+/**
+ * Suppresses unused parameter warnings.
+ *
+ * @note `UNUSED` is intended for use in function bodies
+ * when a parameter is required by an API, but is unused.
+ *
+ * `UNUSED` generates a synaxically correct, but
+ * meaningless statement, using the variable, making it
+ * technically 'used' to suppress the warning.
+ */
+#define UNUSED(x) ((void)(x))
+
+/**
+ * Inidcate the verion of the link audit library this tool
+ * was compiled against.
+ * 
+ * `la_version` allows the RTDL to reect this audit library
+ * at runtime if it uses an unsupported ABI.
+ *
+ * @param version The RTDL Audit API the host supports.
+ * @return The RTDL audit API this object was compiled
+ * for.
+ */
+extern unsigned int la_version(unsigned int version)
 {
-    char* target = argv[1];
+    if (version != LAV_CURRENT)
+    {
+        openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
+        syslog(LOG_ERR, "Unsupported RTLD audit API. Host: v%d, dpatch: v%d\n", version, LAV_CURRENT);
+        closelog();
+        exit(EXIT_FAILURE);
+    }
+    return LAV_CURRENT;
+}
+
+/**
+ * Preinit hook to be called before the target's `main` is
+ * executed.
+ *
+ * For now, the preinit hook patches out a function before
+ * the program is running.
+ *
+ * @param cookie The object at the head of the link map.
+ */
+extern void la_preinit(uintptr_t* cookie)
+{
+    UNUSED(cookie);
     void* target_handle = NULL;
     void* patch_from = NULL;
     void* patch_to = NULL;
     void (* target_start)(void) = NULL;
     machine_code_t* machine_code = NULL;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
-    if (argc < 2)
-    {
-        syslog(LOG_ERR, "A target program must be provided as an argument.");
-        closelog();
-        exit(EXIT_FAILURE);
-    }
     if (machine_code_new(&machine_code) != DPATCH_STATUS_OK)
     {
         syslog(LOG_ERR, "machine_code_t could not be initialised.");
         closelog();
         exit(EXIT_FAILURE);
     }
-    target_handle = dlopen(target, RTLD_LAZY);
+    target_handle = dlopen(NULL, RTLD_LAZY);
     if (target_handle == NULL)
     {
         syslog(LOG_ERR, "%s", dlerror());
@@ -55,8 +94,7 @@ int main(int argc, char** argv)
     {
         syslog(
             LOG_ERR,
-            "The '%s:%s' symbol could not be located.",
-            target,
+            "The target's '%s' symbol could not be located.",
             START_SYMBOL
         );
         exit(EXIT_FAILURE);
