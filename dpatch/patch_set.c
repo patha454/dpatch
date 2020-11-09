@@ -90,3 +90,68 @@ void patch_set_free(patch_set_t* patch_set)
     patch_set->length = 0;
     free(patch_set);
 }
+
+/**
+ * Grow the memory allocated to a patch set.
+ *
+ * @param patch_set Handle to the patch set to grow.
+ * @return `DPATCH_STATUS_OK` on success, or an error.
+ */
+dpatch_status patch_set_grow(patch_set_t* patch_set)
+{
+    struct patch* realloc_result = NULL;
+    assert(patch_set != NULL);
+    patch_set->allocated_length *= 2;
+    realloc_result = realloc
+    (
+        patch_set->patches,
+        sizeof(struct patch) * patch_set->allocated_length
+    );
+    if (realloc_result == NULL)
+    {
+        patch_set->allocated_length /= 2;
+        return DPATCH_STATUS_ENOMEM;
+    }
+    patch_set->patches = realloc_result;
+    return DPATCH_STATUS_OK;
+}
+
+/**
+ * Add a patch operation to the set of operations
+ * associated with a patchset.
+ *
+ * @note The exact semantics of the `old` and `new` symbol
+ * parameters will depend on the patch operation `op`
+ * selected. `old` is generally the symbol to be replaced
+ * and `new` is the new symbol to replace `old`.
+ *
+ * @param patch_set Handle to the patch_set an operation to.
+ * @param op Patch operation to perform.
+ * @param old Symbol to be updated.
+ * @param new Symbol to update to.
+ * @return `DPATCH_STATUS_OK`, or an error on failure.
+ */
+dpatch_status patch_set_add_operation
+(
+    patch_set_t* patch_set,
+    dpatch_operation op,
+    char* old,
+    char* new
+)
+{
+    struct patch* new_patch = NULL;
+    dpatch_status status = DPATCH_STATUS_OK;
+    if (patch_set->length == patch_set->allocated_length)
+    {
+        status = patch_set_grow(patch_set);
+        if (status != DPATCH_STATUS_OK)
+        {
+            return status;
+        }
+    }
+    new_patch = &patch_set->patches[patch_set->length++];
+    new_patch->old_symbol = old;
+    new_patch->new_symbol = new;
+    new_patch->operation = op;
+    return DPATCH_STATUS_OK;
+}
