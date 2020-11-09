@@ -5,7 +5,7 @@
 
 ## Quickstart
 
-You'll need to build `dpatch` and a target program to get started.
+You'll need to build `libdpatch.so` and a target program to get started.
 
 The target program must have its symbols exported as dynamic symbols, which is a known limitation of `dpatch`. The `dpatch` repository comes with several demonstration programs pre-configured for building and using.
 
@@ -16,13 +16,17 @@ $ cmake -B build .
 # Build the configured targets in ./build`.
 $ cmake --build build
 
-# Run the newly-built `dpatch`.
-$ ./build/dpatch ./build/test/hello_world
-Hello, world!
+# See an unpatched program.
+$ ./build/demo/self_patch
+I am alpha!
+
+# Try a dynamic patch.
+$ LD_AUDIT=./build/dpatch/libdpatch.so ./build/test/self_patch
+I am bravo!
 
 # (Optional) Install `dpatch` onto your system.
 $ cmake --build build -t install
-$ dpatch /usr/local/dpatch/demo/hello_world
+$ LD_AUDIT=/usr/local/lib/libdpatch.so /demo/hello_world
 Hello, world!
 ```
 
@@ -47,7 +51,7 @@ $ cmake --build build
 At this point, you could run `dpatch` directly from the build output directory:
 
 ```sh
-$ ./build/dpatch /path/to/target/program
+$ LD_AUDIT=./build/dpatch/libdpatch.so /path/to/target/program
 ```
 
 
@@ -55,10 +59,10 @@ $ ./build/dpatch /path/to/target/program
 
 CMake is configured with install targets for CMake.
 
-You can install `dpatch` directly onto your system using `$ cmake --build build -t install`. Installing `dpatch` will allow you to run it directly from your system paths:
+You can install `dpatch` directly onto your system using `$ cmake --build build -t install`. Installing `dpatch` will allow you to use it from your system paths:
 
 ```sh
-$ dpatch /path/to/target/program
+$ LD_AUDIT=/usr/local/lib/libdpatch.so /path/to/target/program
 ```
 
 ### Packaging
