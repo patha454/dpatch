@@ -155,3 +155,42 @@ dpatch_status patch_set_add_operation
     new_patch->operation = op;
     return DPATCH_STATUS_OK;
 }
+
+dpatch_status patch_replace_function_internal(struct patch* patch)
+{
+    (void) patch;
+    return DPATCH_STATUS_OK;
+}
+
+dpatch_status patch_apply(struct patch* patch)
+{
+    switch (patch->operation)
+    {
+        case DPATCH_OP_REPLACE_FUNCTION_INTERNAL:
+            return patch_replace_function_internal(patch);
+            break;
+        default:
+            return DPATCH_STATUS_EUNKNOWN;
+    }
+}
+
+/**
+ * Attempt to apply a patch_set to the target program.
+ *
+ * @param patch_set Handle to the patch_set to be applied.
+ * @return `DPATCH_STATUS_OK`, or an error on failure.
+ */
+dpatch_status patch_set_apply(patch_set_t* patch_set)
+{
+    size_t i = 0;
+    dpatch_status status = DPATCH_STATUS_OK;
+    for (i = 0; i < patch_set->length; i++)
+    {
+        status = patch_apply(&patch_set->patches[i]);
+        if (status != DPATCH_STATUS_OK)
+        {
+            return status;
+        }
+    }
+    return DPATCH_STATUS_OK;
+}

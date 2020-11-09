@@ -26,8 +26,11 @@ typedef struct patch_set patch_set_t;
  */
 typedef enum
 {
-    /** Replace a function. */
-    DPATCH_OP_REPLACE_FUNCTION
+    /** 
+     * Replace a function with another from the same
+     * object.
+     */
+    DPATCH_OP_REPLACE_FUNCTION_INTERNAL
 } dpatch_operation;
 
 /**

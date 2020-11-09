@@ -26,7 +26,10 @@ typedef enum
     DPATCH_STATUS_ENOMEM,
 
     /** Failed to modify memory protection. */
-    DPATCH_STATUS_EMPROT
+    DPATCH_STATUS_EMPROT,
+
+    /** Unsupported or unknown patch operation. */
+    DPATCH_STATUS_EUNKNOWN,
 } dpatch_status;
 
 #endif
