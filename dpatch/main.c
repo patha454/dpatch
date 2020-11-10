@@ -3,8 +3,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <syslog.h>
-#include <unistd.h>
-#include "code_generator.h"
 #include "status.h"
 
 #include "patch_set.h"
@@ -62,18 +60,9 @@ extern void la_preinit(uintptr_t* cookie)
 {
     UNUSED(cookie);
     void* target_handle = NULL;
-    /*void* patch_from = NULL;
-    void* patch_to = NULL; */
     void (* target_start)(void) = NULL;
-    machine_code_t* machine_code = NULL;
     patch_set_t* patch_set = NULL;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
-    if (machine_code_new(&machine_code) != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "machine_code_t could not be initialised.");
-        closelog();
-        exit(EXIT_FAILURE);
-    }
     target_handle = dlopen(NULL, RTLD_LAZY);
     if (target_handle == NULL)
     {
@@ -90,8 +79,8 @@ extern void la_preinit(uintptr_t* cookie)
         (
             patch_set,
             DPATCH_OP_REPLACE_FUNCTION_INTERNAL,
-            "alpha",
-            "bravo"
+            PATCH_FROM,
+            PATCH_TO
         ) != DPATCH_STATUS_OK
     )
     {
@@ -101,8 +90,6 @@ extern void la_preinit(uintptr_t* cookie)
     {
         syslog(LOG_ERR, "Patch set could not be applied.");
     }
-
-
     /*
      * Casting an object pointer to a function pointer is not strictly valid
      * ANSI C, because some machines have diffrent data and instruction pointer
@@ -113,8 +100,6 @@ extern void la_preinit(uintptr_t* cookie)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wpedantic"
     target_start = (void (*)(void)) dlsym(target_handle, START_SYMBOL);
-    /*patch_from = (void (*)(void)) dlsym(target_handle, PATCH_FROM);
-    patch_to = (void (*)(void)) dlsym(target_handle, PATCH_TO); */
     #pragma GCC diagnostic pop
     if (target_start == NULL)
     {
@@ -125,17 +110,7 @@ extern void la_preinit(uintptr_t* cookie)
         );
         exit(EXIT_FAILURE);
     }
-    /*
-    if (append_long_jump(machine_code, (intptr_t) patch_to) != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "Failure generating a long jump operation.");
-    }
-    if (machine_code_insert(machine_code, (intptr_t) patch_from) != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "Failure inserting new machine code.");
-    } */
     target_start();
-    /*machine_code_free(machine_code); */
     patch_set_free(patch_set);
     closelog();
     exit(EXIT_SUCCESS);
