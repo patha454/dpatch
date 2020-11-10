@@ -10,9 +10,10 @@
  * @date November 2020.
  */
 
-#ifndef DPATCH_INCLUDE_PATCH_H_
-#define DPATCH_INCLUDE_PATCH_H_
+#ifndef DPATCH_INCLUDE_PATCH_SET_H_
+#define DPATCH_INCLUDE_PATCH_SET_H_
 
+#include "patch.h"
 #include "status.h"
 
 /**
@@ -20,18 +21,6 @@
  * set of changes to be applied to a program.
  */
 typedef struct patch_set patch_set_t;
-
-/**
- * A type of patch operation to perform.
- */
-typedef enum
-{
-    /** 
-     * Replace a function with another from the same
-     * object.
-     */
-    DPATCH_OP_REPLACE_FUNCTION_INTERNAL
-} dpatch_operation;
 
 /**
  * Allocates and initialises a new patch set.
