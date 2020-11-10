@@ -90,6 +90,7 @@ extern void la_preinit(uintptr_t* cookie)
     {
         syslog(LOG_ERR, "Patch set could not be applied.");
     }
+    patch_set_free(patch_set);
     /*
      * Casting an object pointer to a function pointer is not strictly valid
      * ANSI C, because some machines have diffrent data and instruction pointer
@@ -110,8 +111,4 @@ extern void la_preinit(uintptr_t* cookie)
         );
         exit(EXIT_FAILURE);
     }
-    target_start();
-    patch_set_free(patch_set);
-    closelog();
-    exit(EXIT_SUCCESS);
 }
