@@ -7,6 +7,8 @@
 #include "code_generator.h"
 #include "status.h"
 
+#include "patch_set.h"
+
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"
 #define PATCH_FROM "alpha"
@@ -60,10 +62,11 @@ extern void la_preinit(uintptr_t* cookie)
 {
     UNUSED(cookie);
     void* target_handle = NULL;
-    void* patch_from = NULL;
-    void* patch_to = NULL;
+    /*void* patch_from = NULL;
+    void* patch_to = NULL; */
     void (* target_start)(void) = NULL;
     machine_code_t* machine_code = NULL;
+    patch_set_t* patch_set = NULL;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     if (machine_code_new(&machine_code) != DPATCH_STATUS_OK)
     {
@@ -77,6 +80,29 @@ extern void la_preinit(uintptr_t* cookie)
         syslog(LOG_ERR, "%s", dlerror());
         exit(EXIT_FAILURE);
     }
+
+    if (patch_set_new(&patch_set) != DPATCH_STATUS_OK)
+    {
+        syslog(LOG_ERR, "patch_set_t could not be initialised.");
+    }
+
+    if (patch_set_add_operation
+        (
+            patch_set,
+            DPATCH_OP_REPLACE_FUNCTION_INTERNAL,
+            "alpha",
+            "bravo"
+        ) != DPATCH_STATUS_OK
+    )
+    {
+        syslog(LOG_ERR, "Could not add patch op");
+    }
+    if (patch_set_apply(patch_set) != DPATCH_STATUS_OK)
+    {
+        syslog(LOG_ERR, "Patch set could not be applied.");
+    }
+
+
     /*
      * Casting an object pointer to a function pointer is not strictly valid
      * ANSI C, because some machines have diffrent data and instruction pointer
@@ -87,8 +113,8 @@ extern void la_preinit(uintptr_t* cookie)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wpedantic"
     target_start = (void (*)(void)) dlsym(target_handle, START_SYMBOL);
-    patch_from = (void (*)(void)) dlsym(target_handle, PATCH_FROM);
-    patch_to = (void (*)(void)) dlsym(target_handle, PATCH_TO);
+    /*patch_from = (void (*)(void)) dlsym(target_handle, PATCH_FROM);
+    patch_to = (void (*)(void)) dlsym(target_handle, PATCH_TO); */
     #pragma GCC diagnostic pop
     if (target_start == NULL)
     {
@@ -99,6 +125,7 @@ extern void la_preinit(uintptr_t* cookie)
         );
         exit(EXIT_FAILURE);
     }
+    /*
     if (append_long_jump(machine_code, (intptr_t) patch_to) != DPATCH_STATUS_OK)
     {
         syslog(LOG_ERR, "Failure generating a long jump operation.");
@@ -106,9 +133,10 @@ extern void la_preinit(uintptr_t* cookie)
     if (machine_code_insert(machine_code, (intptr_t) patch_from) != DPATCH_STATUS_OK)
     {
         syslog(LOG_ERR, "Failure inserting new machine code.");
-    }
+    } */
     target_start();
-    machine_code_free(machine_code);
+    /*machine_code_free(machine_code); */
+    patch_set_free(patch_set);
     closelog();
     exit(EXIT_SUCCESS);
 }

@@ -14,6 +14,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <dlfcn.h>
+#include "code_generator.h"
+
 #define PATCH_DEFAULT_LENGTH 8
 
 /**
@@ -159,6 +162,34 @@ dpatch_status patch_set_add_operation
 dpatch_status patch_replace_function_internal(struct patch* patch)
 {
     (void) patch;
+    intptr_t patch_from = (intptr_t) NULL;
+    intptr_t patch_to = (intptr_t) NULL;
+    void* process_handle = dlopen(NULL, RTLD_LAZY);
+    machine_code_t* machine_code = NULL;
+    dpatch_status status = DPATCH_STATUS_OK;
+    if (process_handle == NULL)
+    {
+        return DPATCH_STATUS_EDYN;
+    }
+    patch_from = (intptr_t) dlsym(process_handle, patch->old_symbol);
+    patch_to = (intptr_t) dlsym(process_handle, patch->new_symbol);
+    if (patch_from == (intptr_t) NULL || patch_to == (intptr_t) NULL)
+    {
+        return DPATCH_STATUS_EDYN;
+    }
+    if ((status = machine_code_new(&machine_code)) != DPATCH_STATUS_OK)
+    {
+        return status;
+    }
+    if ((status = append_long_jump(machine_code, patch_to)) != DPATCH_STATUS_OK)
+    {
+        return status;
+    }
+    if ((status = machine_code_insert(machine_code, patch_from)) != DPATCH_STATUS_OK)
+    {
+        return status;
+    }
+    machine_code_free(machine_code);
     return DPATCH_STATUS_OK;
 }
 

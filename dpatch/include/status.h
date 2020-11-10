@@ -30,6 +30,9 @@ typedef enum
 
     /** Unsupported or unknown patch operation. */
     DPATCH_STATUS_EUNKNOWN,
+
+    /** Error accessing dynamic symbols with `dlfcn.h` */
+    DPATCH_STATUS_EDYN,
 } dpatch_status;
 
 #endif
