@@ -15,9 +15,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include <dlfcn.h>
-#include "code_generator.h"
-
 #define PATCH_DEFAULT_LENGTH 8
 
 struct patch_set
