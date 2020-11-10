@@ -123,7 +123,7 @@ size_t machine_code_length(machine_code_t* machine_code)
  *
  * @param machine_code Handle to the machine code to append.
  * @param byte A byte to append to the machine code.
- * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
+ * @return `DPATCH_STATUS_OK` or an error on failure.
  */
 dpatch_status machine_code_append(machine_code_t* machine_code, uint8_t byte)
 {
@@ -147,7 +147,7 @@ dpatch_status machine_code_append(machine_code_t* machine_code, uint8_t byte)
  * @param machine_code Handle to the machine code to append.
  * @param length Number of bytes to append to the machine code.
  * @param bytes Array of bytes to append.
- * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
+ * @return `DPATCH_STATUS_OK` or an error on failure.
  */
 dpatch_status machine_code_append_array(machine_code_t* machine_code, size_t length, uint8_t bytes[])
 {
@@ -185,7 +185,7 @@ void machine_code_empty(machine_code_t* machine_code)
  * @param address Location to modify permissions for.
  * @param length Length of the segment to adjust.
  * @param prot The new memory protection mode bits.
- * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
+ * @return `DPATCH_STATUS_OK` or an error on failure.
  */
 dpatch_status mprotect_round_(intptr_t address, size_t length, int prot)
 {
@@ -213,7 +213,7 @@ dpatch_status mprotect_round_(intptr_t address, size_t length, int prot)
  *
  * @param machine_code Handle to the machine code to insert.
  * @param address Address to write the code into.
- * @return `DPATCH_STATUS_SUCCESS` or an error on failure.
+ * @return `DPATCH_STATUS_OK` or an error on failure.
  */
 dpatch_status machine_code_insert(machine_code_t* machine_code, intptr_t address)
 {

@@ -26,7 +26,13 @@ typedef enum
     DPATCH_STATUS_ENOMEM,
 
     /** Failed to modify memory protection. */
-    DPATCH_STATUS_EMPROT
+    DPATCH_STATUS_EMPROT,
+
+    /** Unsupported or unknown patch operation. */
+    DPATCH_STATUS_EUNKNOWN,
+
+    /** Error accessing dynamic symbols with `dlfcn.h` */
+    DPATCH_STATUS_EDYN,
 } dpatch_status;
 
 #endif
