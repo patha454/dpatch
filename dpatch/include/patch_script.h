@@ -44,7 +44,7 @@ void patch_script_free(patch_script_t* patch_script);
  * @param path Path to the patch file to parse.
  * @return `DPATCH_STATUS_OK` or an error on failure.
  */
-dpatch_status patch_script_patch
+dpatch_status patch_script_path
 (
     patch_script_t* patch_script,
     char* path
