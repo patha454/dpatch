@@ -34,6 +34,29 @@ struct patch
 };
 
 /**
+ * Convert a string to a `dpatch_operation`.
+ *
+ * @param str String to convert.
+ * @param op  Address to store operation in.
+ * @return `DPATCH_STATUS_OK` or an error on failure.
+ */
+dpatch_status str_to_patch_operation
+(
+    char* str,
+    dpatch_operation* op
+)
+{
+    if (strcmp(str, "fn_replace_internal") == 0)
+    {
+        *op = DPATCH_OP_REPLACE_FUNCTION_INTERNAL;
+    } else
+    {
+        return DPATCH_STATUS_EUNKNOWN;
+    }
+    return DPATCH_STATUS_OK;
+}
+
+/**
  * Allocate and initialise a new patch in memory.
  *
  * @param new Location to store a handle to a new patch.

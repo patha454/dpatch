@@ -11,6 +11,7 @@ add_library(dpatch SHARED
     ${PROJECT_SOURCE_DIR}/main.c
     ${PROJECT_SOURCE_DIR}/x64_code_generator.c
     ${PROJECT_SOURCE_DIR}/machine_code.c
+    ${PROJECT_SOURCE_DIR}/patch_script.c
     ${PROJECT_SOURCE_DIR}/patch_set.c
     ${PROJECT_SOURCE_DIR}/patch.c
 )
