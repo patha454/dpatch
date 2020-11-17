@@ -42,6 +42,19 @@ typedef enum
 typedef struct patch patch_t;
 
 /**
+ * Convert a string to a `dpatch_operation`.
+ *
+ * @param str String to convert.
+ * @param op  Address to store operation in.
+ * @return `DPATCH_STATUS_OK` or an error on failure.
+ */
+dpatch_status str_to_patch_operation
+(
+    char* str,
+    dpatch_operation* op
+);
+
+/**
  * Allocate and initialise a new patch in memory.
  *
  * @param new Location to store a handle to a new patch.

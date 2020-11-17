@@ -91,8 +91,7 @@ extern void la_preinit(uintptr_t* cookie)
     {
         syslog(LOG_ERR, "Could not parse patch script");
         exit(EXIT_FAILURE);
-    }
-
+    }/*
     if (patch_set_add_operation
         (
             patch_set,
@@ -104,7 +103,7 @@ extern void la_preinit(uintptr_t* cookie)
     {
         syslog(LOG_ERR, "Could not add patch op");
         exit(EXIT_FAILURE);
-    }
+    }*/
     if (patch_set_apply(patch_set) != DPATCH_STATUS_OK)
     {
         syslog(LOG_ERR, "Patch set could not be applied.");

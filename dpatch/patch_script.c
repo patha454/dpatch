@@ -103,18 +103,24 @@ dpatch_status parse_script_line
     patch_set_t* patch_set
 )
 {
-    char operation[PATCH_SCRIPT_MAX_LINE_LEN];
+    char operation_str[PATCH_SCRIPT_MAX_LINE_LEN];
     char op_from[PATCH_SCRIPT_MAX_LINE_LEN];
     char op_to[PATCH_SCRIPT_MAX_LINE_LEN];
+    dpatch_operation operation = DPATCH_OP_NOP;
     dpatch_status status = DPATCH_STATUS_OK;
-    if (sscanf(line, "%s %s %s", operation, op_from, op_to) != 3)
+    if (sscanf(line, "%s %s %s", operation_str, op_from, op_to) != 3)
     {
         return DPATCH_STATUS_ESYNTAX;
+    }
+    status = str_to_patch_operation(operation_str, &operation);
+    if (status != DPATCH_STATUS_OK)
+    {
+        return status;
     }
     status = patch_set_add_operation
     (
         patch_set,
-        operation, /* This should be converted to dpatch_operation first. */
+        operation,
         op_from,
         op_to
     );
