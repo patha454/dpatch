@@ -17,6 +17,8 @@
 #include <string.h>
 
 #define PATCH_SCRIPT_MAX_LINE_LEN 255
+#define XSTR(x) STR(x)
+#define STR(x) #x
 
 /**
  * A patch script to be processed.
@@ -89,6 +91,41 @@ dpatch_status patch_script_path
 }
 
 /**
+ * Parse a single line (instruction) of a patch script.
+ *
+ * @param line The script line to be parsed.
+ * @param patch_set Patch to parse the line into.
+ * @return `DPATCH_STATUS_OK` or an error on failure.
+ */
+dpatch_status parse_script_line
+(
+    char* line,
+    patch_set_t* patch_set
+)
+{
+    char operation[PATCH_SCRIPT_MAX_LINE_LEN];
+    char op_from[PATCH_SCRIPT_MAX_LINE_LEN];
+    char op_to[PATCH_SCRIPT_MAX_LINE_LEN];
+    dpatch_status status = DPATCH_STATUS_OK;
+    if (sscanf(line, "%s %s %s", operation, op_from, op_to) != 3)
+    {
+        return DPATCH_STATUS_ESYNTAX;
+    }
+    status = patch_set_add_operation
+    (
+        patch_set,
+        operation, /* This should be converted to dpatch_operation first. */
+        op_from,
+        op_to
+    );
+    if (status != DPATCH_STATUS_OK)
+    {
+        return status;
+    }
+    return DPATCH_STATUS_OK;
+}
+
+/**
  * Parse a patch script into memory.
  *
  * @param patch_script Handle to the patch script to parse.
@@ -101,17 +138,21 @@ dpatch_status patch_script_parse
     patch_set_t* patch_set
 )
 {
-    (void) patch_script;
     (void) patch_set;
     FILE* script = fopen(patch_script->script_path, "r");
     char line[PATCH_SCRIPT_MAX_LINE_LEN];
+    dpatch_status status = DPATCH_STATUS_OK;
     if (script == NULL)
     {
         return DPATCH_STATUS_EFILE;
     }
-    while (fscanf(script, "%s\n", line) == 1)
+    while (fscanf(script, "%" XSTR(PATCH_SCRIPT_MAX_LINE_LEN) "[^\n]\n", line) == 1)
     {
-        printf("%s\n", line);
+        status = parse_script_line(line, patch_set);
+        if (status != DPATCH_STATUS_OK)
+        {
+            return status;
+        }        
     }
-    return DPATCH_STATUS_ERROR;
+    return DPATCH_STATUS_OK;
 }
