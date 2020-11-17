@@ -59,8 +59,8 @@ dpatch_status patch_script_path
  */
 dpatch_status patch_script_parse
 (
-    patch_script_t patch_script,
-    patch_set_t patch_set
+    patch_script_t* patch_script,
+    patch_set_t* patch_set
 );
 
 #endif

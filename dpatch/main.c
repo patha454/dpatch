@@ -6,6 +6,7 @@
 #include "status.h"
 
 #include "patch_set.h"
+#include "patch_script.h"
 
 #define PROGRAM_IDENT "dpatch"
 #define START_SYMBOL "main"

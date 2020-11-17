@@ -33,6 +33,12 @@ typedef enum
 
     /** Error accessing dynamic symbols with `dlfcn.h` */
     DPATCH_STATUS_EDYN,
+
+    /** File I/O error. */
+    DPATCH_STATUS_EFILE,
+
+    /** Script parsing error. */
+    DPATCH_STATUS_ESYNTAX
 } dpatch_status;
 
 #endif

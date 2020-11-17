@@ -13,7 +13,10 @@
 #include "status.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+
+#define PATCH_SCRIPT_MAX_LINE_LEN 255
 
 /**
  * A patch script to be processed.
@@ -85,3 +88,30 @@ dpatch_status patch_script_path
     return DPATCH_STATUS_OK;
 }
 
+/**
+ * Parse a patch script into memory.
+ *
+ * @param patch_script Handle to the patch script to parse.
+ * @param patch_set Set to parse the script into.
+ * @return `DPATCH_STATUS_OK` or an error code.
+ */
+dpatch_status patch_script_parse
+(
+    patch_script_t* patch_script,
+    patch_set_t* patch_set
+)
+{
+    (void) patch_script;
+    (void) patch_set;
+    FILE* script = fopen(patch_script->script_path, "r");
+    char line[PATCH_SCRIPT_MAX_LINE_LEN];
+    if (script == NULL)
+    {
+        return DPATCH_STATUS_EFILE;
+    }
+    while (fscanf(script, "%s\n", line) == 1)
+    {
+        printf("%s\n", line);
+    }
+    return DPATCH_STATUS_ERROR;
+}
