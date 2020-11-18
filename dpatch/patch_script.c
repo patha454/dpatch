@@ -20,6 +20,9 @@
 #define XSTR(x) STR(x)
 #define STR(x) #x
 
+#define DEFAULT_SCRIPT_PATH "/usr/etc/patch.dpatch"
+#define SCRIPT_PATH_ENV_VAR "DPATCH_SCRIPT"
+
 /**
  * A patch script to be processed.
  */
@@ -28,6 +31,22 @@ struct patch_script
     /** The path to the script on disk. */
     char* script_path;
 };
+
+/**
+ * Sets the patch path to the default path, or a path
+ * indicated by an environment variable if available.
+ *
+ * @param patch Path to init path into.
+ * @return `DPATCH_STATUS_OK` or an error on failure.
+ */
+dpatch_status patch_script_init_path(patch_script_t* patch)
+{
+    assert(patch != NULL);
+    char* path = getenv(SCRIPT_PATH_ENV_VAR);
+    path = path == NULL ? DEFAULT_SCRIPT_PATH : path;
+    return patch_script_path(patch, path);
+}
+
 
 /**
  * Allocate and initialise a new patch script reference in
@@ -39,13 +58,20 @@ struct patch_script
 dpatch_status patch_script_new(patch_script_t** new)
 {
     assert(new != NULL);
+    dpatch_status status = DPATCH_STATUS_OK;
     patch_script_t* handle = malloc(sizeof*handle);
     *new = handle;
     if (handle == NULL)
     {
         return DPATCH_STATUS_ENOMEM;
     }
-    handle->script_path = NULL;
+    status = patch_script_init_path(handle);
+    if (status != DPATCH_STATUS_OK)
+    {
+        *new = NULL;
+        patch_script_free(handle);
+        return status;
+    }
     return DPATCH_STATUS_OK;
 }
 
@@ -81,7 +107,19 @@ dpatch_status patch_script_path
 {
     assert(patch_script != NULL);
     assert(path != NULL);
-    patch_script->script_path = malloc(strlen(path));
+    if (patch_script->script_path == NULL)
+    {
+        patch_script->script_path = malloc(strlen(path));
+    }
+    else if (
+        strlen(patch_script->script_path) < strlen(path)
+    )
+    {
+        patch_script->script_path = realloc(
+            patch_script->script_path,
+            strlen(path)
+        );
+    }
     if (patch_script->script_path == NULL)
     {
         return DPATCH_STATUS_ENOMEM;
