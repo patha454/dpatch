@@ -66,6 +66,7 @@ extern void la_preinit(uintptr_t* cookie)
     patch_script_t* patch_script = NULL;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     target_handle = dlopen(NULL, RTLD_LAZY);
+    dpatch_status status = DPATCH_STATUS_OK;
     if (target_handle == NULL)
     {
         syslog(LOG_ERR, "%s", dlerror());
@@ -82,14 +83,9 @@ extern void la_preinit(uintptr_t* cookie)
         syslog(LOG_ERR, "patch_script_t could not be initalised.");
         exit(EXIT_FAILURE);
     }
-    if (patch_script_path(patch_script, "test.patch") != DPATCH_STATUS_OK)
+    if ((status = patch_script_parse(patch_script, patch_set)) != DPATCH_STATUS_OK)
     {
-        syslog(LOG_ERR, "Could not set patch script path.");
-        exit(EXIT_FAILURE);
-    }
-    if (patch_script_parse(patch_script, patch_set) != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "Could not parse patch script");
+        syslog(LOG_ERR, "Could not parse patch script: %s", str_status(status));
         exit(EXIT_FAILURE);
     }
     if (patch_set_apply(patch_set) != DPATCH_STATUS_OK)

@@ -14,6 +14,7 @@ add_library(dpatch SHARED
     ${PROJECT_SOURCE_DIR}/patch_script.c
     ${PROJECT_SOURCE_DIR}/patch_set.c
     ${PROJECT_SOURCE_DIR}/patch.c
+    ${PROJECT_SOURCE_DIR}/status.c
 )
 
 set_property(TARGET dpatch PROPERTY C_STANDARD 99)

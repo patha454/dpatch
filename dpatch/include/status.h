@@ -41,4 +41,12 @@ typedef enum
     DPATCH_STATUS_ESYNTAX
 } dpatch_status;
 
+/**
+ * Get a human readable string describing a status code.
+ *
+ * @param status Status code to translate.
+ * @return Pointer to a string describing the error.
+ */
+const char* str_status(dpatch_status status);
+
 #endif
