@@ -131,11 +131,7 @@ dpatch_status machine_code_append(machine_code_t* machine_code, uint8_t byte)
     assert(machine_code != NULL);
     if (machine_code->length == machine_code->allocated_length)
     {
-        status = machine_code_grow(machine_code);
-        if (status != DPATCH_STATUS_OK)
-        {
-            return status;
-        }
+        PROPAGATE_ERROR(machine_code_grow(machine_code), status);
     }
     machine_code->binary[machine_code->length++] = byte;
     return DPATCH_STATUS_OK;
@@ -156,7 +152,7 @@ dpatch_status machine_code_append_array(machine_code_t* machine_code, size_t len
     for (i = 0; i < length; i++)
     {
         status = machine_code_append(machine_code, bytes[i]);
-        if (status != DPATCH_STATUS_OK)
+        if (IS_ERROR(status))
         {
             machine_code->length -= i;
             return status;
@@ -194,7 +190,7 @@ dpatch_status mprotect_round_(intptr_t address, size_t length, int prot)
     if (page_size < 1)
     {
         // Sysconf many not support `_SC_PAGESIZE` on the host.
-        return DPATCH_STATUS_ERROR;
+        return DPATCH_STATUS_EMPROT;
     }
     assert(page_size > 0);
     delta = address % page_size;
@@ -203,7 +199,7 @@ dpatch_status mprotect_round_(intptr_t address, size_t length, int prot)
     #pragma message "`mprotect` on memory not acquired by `mmap` is a non-POSIX Linux extention."
     if (mprotect((void*) address, length, prot) == -1)
     {
-        return DPATCH_STATUS_ERROR;
+        return DPATCH_STATUS_EMPROT;
     }
     return DPATCH_STATUS_OK;
 }
@@ -219,15 +215,15 @@ dpatch_status machine_code_insert(machine_code_t* machine_code, intptr_t address
 {
     dpatch_status status = DPATCH_STATUS_OK;
     status = mprotect_round_(address, machine_code->length, PROT_READ | PROT_WRITE | PROT_EXEC);
-    if (status != DPATCH_STATUS_OK)
+    if (IS_ERROR(status))
     {
-        return DPATCH_STATUS_EMPROT;
+        return status;
     }
     memcpy((void*) address, (void*) machine_code->binary, machine_code->length);
     status = mprotect_round_(address, machine_code->length, PROT_READ | PROT_EXEC);
-    if (status != DPATCH_STATUS_OK)
+    if (IS_ERROR(status))
     {
-        return DPATCH_STATUS_EMPROT;
+        return status;
     }
     return DPATCH_STATUS_OK;
 }

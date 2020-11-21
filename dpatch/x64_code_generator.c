@@ -39,36 +39,29 @@ dpatch_status append_long_jump(machine_code_t* machine_code, intptr_t addr)
     const uint8_t MODRM_RIP_RELATIVE = 0x5;
     /* The jump pointer is immediately after this instruction. */
     const uint32_t LJMP_RIP_DISPLACEMENT = 0x0;
-    status = machine_code_append(machine_code, LJMP_OPCODE);
-    if (status != DPATCH_STATUS_OK) 
-    {
-        return status;
-    }
-    status = machine_code_append(
-        machine_code,
-        LJMP_MODRM_EXTENSION | MODRM_RIP_RELATIVE
+    PROPAGATE_ERROR(
+        machine_code_append(machine_code, LJMP_OPCODE),
+        status
     );
-    if (status != DPATCH_STATUS_OK)
-    {
-        return status;
-    }
-    status = machine_code_append_array(
-        machine_code,
-        sizeof LJMP_RIP_DISPLACEMENT,
-        (uint8_t*) &LJMP_RIP_DISPLACEMENT
+    PROPAGATE_ERROR(
+        machine_code_append(machine_code,
+            LJMP_MODRM_EXTENSION | MODRM_RIP_RELATIVE
+        ),
+        status
     );
-    if (status != DPATCH_STATUS_OK)
-    {
-        return status;
-    }
-    status = machine_code_append_array(
-        machine_code,
-        sizeof addr,
-        (uint8_t*) &addr
+    PROPAGATE_ERROR(
+        machine_code_append_array(machine_code,
+            sizeof LJMP_RIP_DISPLACEMENT,
+            (uint8_t*) &LJMP_RIP_DISPLACEMENT
+        ),
+        status
     );
-    if (status != DPATCH_STATUS_OK)
-    {
-        return status;
-    }
+    PROPAGATE_ERROR(
+        machine_code_append_array(machine_code,
+            sizeof addr,
+            (uint8_t*) &addr
+        ),
+        status
+    );
     return DPATCH_STATUS_OK;
 }

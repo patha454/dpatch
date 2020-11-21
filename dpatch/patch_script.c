@@ -66,7 +66,7 @@ dpatch_status patch_script_new(patch_script_t** new)
         return DPATCH_STATUS_ENOMEM;
     }
     status = patch_script_init_path(handle);
-    if (status != DPATCH_STATUS_OK)
+    if (IS_ERROR(status))
     {
         *new = NULL;
         patch_script_free(handle);
@@ -150,22 +150,20 @@ dpatch_status parse_script_line
     {
         return DPATCH_STATUS_ESYNTAX;
     }
-    status = str_to_patch_operation(operation_str, &operation);
-    if (status != DPATCH_STATUS_OK)
-    {
-        return status;
-    }
-    status = patch_set_add_operation
-    (
-        patch_set,
-        operation,
-        op_from,
-        op_to
+    PROPAGATE_ERROR(
+        str_to_patch_operation(operation_str, &operation),
+        status
     );
-    if (status != DPATCH_STATUS_OK)
-    {
-        return status;
-    }
+    PROPAGATE_ERROR(
+        patch_set_add_operation
+        (
+            patch_set,
+            operation,
+            op_from,
+            op_to
+        ),
+        status
+    );
     return DPATCH_STATUS_OK;
 }
 
@@ -192,11 +190,7 @@ dpatch_status patch_script_parse
     }
     while (fscanf(script, "%" XSTR(PATCH_SCRIPT_MAX_LINE_LEN) "[^\n]\n", line) == 1)
     {
-        status = parse_script_line(line, patch_set);
-        if (status != DPATCH_STATUS_OK)
-        {
-            return status;
-        }        
+        PROPAGATE_ERROR(parse_script_line(line, patch_set), status);      
     }
     return DPATCH_STATUS_OK;
 }
