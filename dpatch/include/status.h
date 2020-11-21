@@ -11,8 +11,110 @@
 #ifndef DPATCH_INCLUDE_STATUS_H_
 #define DPATCH_INCLUDE_STATUS_H_
 
+#include <stdbool.h>
+#include <stdlib.h>
+
 /**
- * Indicates the success or failure of an operation by dpatch.
+ * Template for an exit on error macro,
+ *
+ * @warning This macro is for internal use only. See
+ * `EXIT_ON_ERROR` for a user macro.
+ *
+ * @param x A predicate evaluating to a `dpatch_status`.
+ */
+#define _EXIT_ON_ERROR_TEMPLATE(x) \
+    if ((x) != DPATCH_STATUS_OK) \
+    { \
+        syslog( \
+            LOG_ERR, \
+            "Error: %s. (%s:%d)", \
+            str_status(x), \
+            __FILE__, \
+            __LINE__); \
+        exit(EXIT_FAILURE); \
+    }
+
+/**
+ * Template for an error logging macro,
+ *
+ * @warning This macro is for internal use only. See
+ * `LOG_ON_ERROR` for a user macro.
+ *
+ * @param x A predicate evaluating to a `dpatch_status`.
+ */
+#define _LOG_ON_ERROR_TEMPLATE(x) \
+    if ((x) != DPATCH_STATUS_OK) \
+    { \
+        syslog( \
+            LOG_ERR, \
+            "Error: %s. (%s:%d)", \
+            str_status(x), \
+            __FILE__, \
+            __LINE__); \
+    }
+
+/**
+ * Template for an error propagation macro.
+ *
+ * @warning This macro is for internal use only. See
+ * `PROPAGATE_ERROR` for a user macro.
+ *
+ * @param statement Statement evaluating to a
+ * `dpatch_status`
+ * @param status `dpatch_status` variable for temporary
+ * storage.
+ */
+#define _PROPAGATE_ERROR_TEMPLATE(statement, status) \
+    status = statement; \
+    if (status != DPATCH_STATUS_OK) \
+    { \
+        return status; \
+    }
+
+/**
+ * Exit if an error occures.
+ *
+ * Exit if an error occures, logging an error to the
+ * system log.
+ *
+ * @param x A predicate evaluating to a `dpatch_status`.
+ */
+#define EXIT_ON_ERROR(x) _EXIT_ON_ERROR_TEMPLATE(x)
+
+/**
+ * log if an error occures.
+ *
+ * Log an error message to the system log if an error
+ * occures.
+ *
+ * @param x A predicate evaluating to a `dpatch_status`.
+ */
+#define LOG_ON_ERROR(x) _LOG_ON_ERROR_TEMPLATE(x)
+
+/**
+ * Error propagation macro.
+ *
+ * Progagates an error, by returning, if an error occures.
+ *
+ * @param statement Statement evaluating to a
+ * `dpatch_status`
+ * @param status `dpatch_status` variable for temporary
+ * storage.
+ */
+#define PROPAGATE_ERROR(statement, status) \
+    _PROPAGATE_ERROR_TEMPLATE(statement, status)
+
+/**
+ * Tests if a statement is a dpatch error.
+ *
+ * @param statement Statement evaluating to a `dpatch_status`.
+ */
+#define IS_ERROR(statement) \
+    (statement == DPATCH_STATUS_OK ? false : true)
+
+/**
+ * Indicates the success or failure of an operation by
+ * dpatch.
  */
 typedef enum
 {

@@ -61,56 +61,19 @@ extern void la_preinit(uintptr_t* cookie)
 {
     UNUSED(cookie);
     void* target_handle = NULL;
-    void (* target_start)(void) = NULL;
     patch_set_t* patch_set = NULL;
     patch_script_t* patch_script = NULL;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     target_handle = dlopen(NULL, RTLD_LAZY);
-    dpatch_status status = DPATCH_STATUS_OK;
     if (target_handle == NULL)
     {
         syslog(LOG_ERR, "%s", dlerror());
         exit(EXIT_FAILURE);
     }
-
-    if (patch_set_new(&patch_set) != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "patch_set_t could not be initialised.");
-        exit(EXIT_FAILURE);
-    }
-    if (patch_script_new(&patch_script) != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "patch_script_t could not be initalised.");
-        exit(EXIT_FAILURE);
-    }
-    if ((status = patch_script_parse(patch_script, patch_set)) != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "Could not parse patch script: %s", str_status(status));
-        exit(EXIT_FAILURE);
-    }
-    if (patch_set_apply(patch_set) != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "Patch set could not be applied.");
-    }
+    EXIT_ON_ERROR(patch_set_new(&patch_set));
+    EXIT_ON_ERROR(patch_script_new(&patch_script));
+    EXIT_ON_ERROR(patch_script_parse(patch_script, patch_set));
+    LOG_ON_ERROR(patch_set_apply(patch_set));
     patch_set_free(patch_set);
-    /*
-     * Casting an object pointer to a function pointer is not strictly valid
-     * ANSI C, because some machines have diffrent data and instruction pointer
-     * widths. Diffrent data and instruction widths is largely an archaic detail
-     * and the design of `dlfcn` forces us to make the cast. Disable pedantic 
-     * errors for the cast.
-     */
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wpedantic"
-    target_start = (void (*)(void)) dlsym(target_handle, START_SYMBOL);
-    #pragma GCC diagnostic pop
-    if (target_start == NULL)
-    {
-        syslog(
-            LOG_ERR,
-            "The target's '%s' symbol could not be located.",
-            START_SYMBOL
-        );
-        exit(EXIT_FAILURE);
-    }
+    patch_script_free(patch_script);
 }

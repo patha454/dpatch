@@ -153,30 +153,9 @@ dpatch_status patch_replace_function_internal(patch_t* patch)
     {
         return DPATCH_STATUS_EDYN;
     }
-    if
-    (
-        (status = machine_code_new(&machine_code)) != 
-        DPATCH_STATUS_OK
-    )
-    {
-        return status;
-    }
-    if
-    (
-        (status = append_long_jump(machine_code, patch_to)) !=
-        DPATCH_STATUS_OK
-    )
-    {
-        return status;
-    }
-    if
-    (
-        (status = machine_code_insert(machine_code, patch_from)) !=
-        DPATCH_STATUS_OK
-    )
-    {
-        return status;
-    }
+    PROPAGATE_ERROR(machine_code_new(&machine_code), status);
+    PROPAGATE_ERROR(append_long_jump(machine_code, patch_to), status);
+    PROPAGATE_ERROR(machine_code_insert(machine_code, patch_from), status);
     machine_code_free(machine_code);
     return DPATCH_STATUS_OK;
 }

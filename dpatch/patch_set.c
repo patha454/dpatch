@@ -126,22 +126,10 @@ dpatch_status patch_set_add_operation
     dpatch_status status = DPATCH_STATUS_OK;
     if (patch_set->length == patch_set->allocated_length)
     {
-        status = patch_set_grow(patch_set);
-        if (status != DPATCH_STATUS_OK)
-        {
-            return status;
-        }
+        PROPAGATE_ERROR(patch_set_grow(patch_set), status);
     }
-    status = patch_new(&new_patch);
-    if (status != DPATCH_STATUS_OK)
-    {
-        return status;
-    }
-    status = patch_operation(new_patch, op, old, new);
-    if (status != DPATCH_STATUS_OK)
-    {
-        return status;
-    }
+    PROPAGATE_ERROR(patch_new(&new_patch), status);
+    PROPAGATE_ERROR(patch_operation(new_patch, op, old, new), status);
     patch_set->patches[patch_set->length++] = new_patch;
     return DPATCH_STATUS_OK;
 }
@@ -158,11 +146,7 @@ dpatch_status patch_set_apply(patch_set_t* patch_set)
     dpatch_status status = DPATCH_STATUS_OK;
     for (i = 0; i < patch_set->length; i++)
     {
-        status = patch_apply(patch_set->patches[i]);
-        if (status != DPATCH_STATUS_OK)
-        {
-            return status;
-        }
+        PROPAGATE_ERROR(patch_apply(patch_set->patches[i]), status);
     }
     return DPATCH_STATUS_OK;
 }
