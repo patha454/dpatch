@@ -29,8 +29,6 @@ configure_file(
 
 install(
     TARGETS
-        hello_world
-        print_load_address
         self_patch
     RUNTIME 
     DESTINATION
