@@ -21,12 +21,12 @@ $ ./build/demo/self_patch
 I am alpha!
 
 # Try a dynamic patch.
-$ LD_AUDIT=./build/dpatch/libdpatch.so ./build/test/self_patch
+$ LD_AUDIT=./build/dpatch/libdpatch.so DPATCH_SCRIPT=./build/demo/self_patch.patch ./build/demo/self_patch
 I am bravo!
 
 # (Optional) Install `dpatch` onto your system.
 $ cmake --build build -t install
-$ LD_AUDIT=/usr/local/lib/libdpatch.so /demo/hello_world
+$ LD_AUDIT=/usr/local/lib/libdpatch.so DPATCH_SCRIPT=/usr/local/etc/self_patch.patch /usr/local/dpatch/demo/self_patch
 Hello, world!
 ```
 
@@ -90,3 +90,9 @@ View `cpack --help` for a list of package generator formats available for your p
 #### Self-packaging
 
 `dpatch`'s `install` target respects the standard `DESTDIR` environment variable to install `dpatch` to a custom path. This can be used to generate binary packages as you see fit.
+
+### Scripting
+
+Dpatch uses scripts to determine how to patch the target. The script path can be specified as an environment variable named `DPATCH_SCRIPT`. The environment variable must be set when the target program is started and linked with `libdpatch`.
+
+If no script path is specified, Dpatch will attempte to find a script in the default path: `/usr/etc/patch.dpatch`.
