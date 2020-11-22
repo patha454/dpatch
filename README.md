@@ -91,7 +91,7 @@ View `cpack --help` for a list of package generator formats available for your p
 
 `dpatch`'s `install` target respects the standard `DESTDIR` environment variable to install `dpatch` to a custom path. This can be used to generate binary packages as you see fit.
 
-### Scripting
+## Scripting
 
 Dpatch uses scripts to determine how to patch the target. The script path can be specified as an environment variable named `DPATCH_SCRIPT`. The environment variable must be set when the target program is started and linked with `libdpatch`.
 
