@@ -7,8 +7,6 @@ project(
     LANGUAGES C
 )
 
-add_executable(hello_world ${PROJECT_SOURCE_DIR}/hello_world.c)
-add_executable(print_load_address ${PROJECT_SOURCE_DIR}/print_load_address.c)
 add_executable(self_patch ${PROJECT_SOURCE_DIR}/self_patch.c)
 
 # `dpatch's` targets must expose all their symbols as dynamic symbols so
@@ -21,9 +19,13 @@ add_executable(self_patch ${PROJECT_SOURCE_DIR}/self_patch.c)
 # this limitation. We ignore this for now because we are focused on
 # writing dynamic patching demonstrations, not run time dynamic
 # linker-loaders.
-set_property(TARGET hello_world PROPERTY ENABLE_EXPORTS 1)
-set_property(TARGET print_load_address PROPERTY ENABLE_EXPORTS 1)
 set_property(TARGET self_patch PROPERTY ENABLE_EXPORTS 1)
+
+configure_file(
+    ${PROJECT_SOURCE_DIR}/self_patch.patch
+    ${PROJECT_BINARY_DIR}/self_patch.patch
+    COPYONLY
+)
 
 install(
     TARGETS
@@ -33,5 +35,11 @@ install(
     RUNTIME 
     DESTINATION
         dpatch/demo
+)
+
+install(
+    FILES
+        ${PROJECT_BINARY_DIR}/self_patch.patch
+    TYPE SYSCONF
 )
 
