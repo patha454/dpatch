@@ -1,17 +1,18 @@
+#include <assert.h>
 #include <dlfcn.h>
 #include <link.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <syslog.h>
 #include "status.h"
 
+#include <stdio.h>
+
 #include "patch_set.h"
 #include "patch_script.h"
 
 #define PROGRAM_IDENT "dpatch"
-#define START_SYMBOL "main"
-#define PATCH_FROM "alpha"
-#define PATCH_TO "bravo"
 
 /**
  * Suppresses unused parameter warnings.
@@ -24,6 +25,33 @@
  * technically 'used' to suppress the warning.
  */
 #define UNUSED(x) ((void)(x))
+
+patch_set_t* pending_patch = NULL;
+
+dpatch_status do_patch()
+{
+    assert(pending_patch != NULL);
+    LOG_ON_ERROR(patch_set_apply(pending_patch));
+    patch_set_free(pending_patch);
+    pending_patch = NULL;
+    return DPATCH_STATUS_OK;
+}
+
+void sigusr2_handler(int signal)
+{
+    dpatch_status status = DPATCH_STATUS_OK;
+    assert(signal == SIGUSR2);
+    syslog(LOG_INFO, "Recieved SIGUSR2. Attempting dynamic patch.");
+    status = do_patch();
+    if (status != DPATCH_STATUS_OK)
+    {
+        syslog(LOG_ERR, "Dynamic patch failed to apply: %s", str_status(status));
+    }
+    else 
+    {
+        syslog(LOG_INFO, "Dynamic patch applied successfully.");
+    }
+}
 
 /**
  * Inidcate the verion of the link audit library this tool
@@ -41,7 +69,7 @@ extern unsigned int la_version(unsigned int version)
     if (version != LAV_CURRENT)
     {
         openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
-        syslog(LOG_ERR, "Unsupported RTLD audit API. Host: v%d, dpatch: v%d\n", version, LAV_CURRENT);
+        syslog(LOG_ERR, "Unsupported RTLD audit API. Host: v%d, dpatch: v%d", version, LAV_CURRENT);
         closelog();
         exit(EXIT_FAILURE);
     }
@@ -52,28 +80,19 @@ extern unsigned int la_version(unsigned int version)
  * Preinit hook to be called before the target's `main` is
  * executed.
  *
- * For now, the preinit hook patches out a function before
- * the program is running.
+ * The pre-init hook sets up the singal handler for dynamic
+ * patching.
  *
  * @param cookie The object at the head of the link map.
  */
 extern void la_preinit(uintptr_t* cookie)
 {
     UNUSED(cookie);
-    void* target_handle = NULL;
-    patch_set_t* patch_set = NULL;
     patch_script_t* patch_script = NULL;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
-    target_handle = dlopen(NULL, RTLD_LAZY);
-    if (target_handle == NULL)
-    {
-        syslog(LOG_ERR, "%s", dlerror());
-        exit(EXIT_FAILURE);
-    }
-    EXIT_ON_ERROR(patch_set_new(&patch_set));
+    signal(SIGUSR2, sigusr2_handler);
+    EXIT_ON_ERROR(patch_set_new(&pending_patch));
     EXIT_ON_ERROR(patch_script_new(&patch_script));
-    EXIT_ON_ERROR(patch_script_parse(patch_script, patch_set));
-    LOG_ON_ERROR(patch_set_apply(patch_set));
-    patch_set_free(patch_set);
+    EXIT_ON_ERROR(patch_script_parse(patch_script, pending_patch));
     patch_script_free(patch_script);
 }
