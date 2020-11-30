@@ -28,6 +28,15 @@
 
 patch_set_t* pending_patch = NULL;
 
+/**
+ * Applies a pending patch.
+ *
+ * @warning `do_patch` assumes a patch has been parsed.
+ *
+ * The patch parsing functions are not reentrant, so
+ * they must be called outside of the signal handler,
+ * or made reentrant.
+ */
 dpatch_status do_patch()
 {
     assert(pending_patch != NULL);
@@ -37,6 +46,11 @@ dpatch_status do_patch()
     return DPATCH_STATUS_OK;
 }
 
+/**
+ * SIGUSR2 initiates a dynamic path.
+ *
+ * @param signal The incomming singal to handle.
+ */
 void sigusr2_handler(int signal)
 {
     dpatch_status status = DPATCH_STATUS_OK;
