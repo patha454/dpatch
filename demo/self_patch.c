@@ -1,5 +1,7 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 void alpha(void)
 {
@@ -13,6 +15,10 @@ void bravo(void)
 
 int main(void)
 {
-    alpha();
+    while (true)
+    {
+        alpha();
+        sleep(1);
+    }
     exit(EXIT_SUCCESS);
 }
