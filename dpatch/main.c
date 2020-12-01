@@ -1,18 +1,12 @@
 #include <assert.h>
-#include <dlfcn.h>
 #include <link.h>
 #include <pthread.h>
 #include <signal.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <syslog.h>
 #include <unistd.h>
-#include "status.h"
-
-#include <stdio.h>
-
 #include "patch_set.h"
 #include "patch_script.h"
+#include "status.h"
 
 #define PROGRAM_IDENT "dpatch"
 
