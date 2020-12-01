@@ -1,10 +1,12 @@
 #include <assert.h>
 #include <dlfcn.h>
 #include <link.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <syslog.h>
+#include <unistd.h>
 #include "status.h"
 
 #include <stdio.h>
@@ -28,6 +30,8 @@
 
 patch_set_t* pending_patch = NULL;
 
+bool patch_pending = false;
+
 /**
  * Applies a pending patch.
  *
@@ -39,11 +43,27 @@ patch_set_t* pending_patch = NULL;
  */
 dpatch_status do_patch()
 {
-    assert(pending_patch != NULL);
+    printf("Doing path...\n");
+    return DPATCH_STATUS_OK;
+    /*assert(pending_patch != NULL);
     LOG_ON_ERROR(patch_set_apply(pending_patch));
     patch_set_free(pending_patch);
     pending_patch = NULL;
-    return DPATCH_STATUS_OK;
+    return DPATCH_STATUS_OK; */
+}
+
+void* patch_loop()
+{
+    while (true)
+    {
+        if (patch_pending)
+        {
+            patch_pending = false;
+            do_patch();
+        }
+        sleep(1);
+    }
+    return NULL;
 }
 
 /**
@@ -53,18 +73,9 @@ dpatch_status do_patch()
  */
 void sigusr2_handler(int signal)
 {
-    dpatch_status status = DPATCH_STATUS_OK;
     assert(signal == SIGUSR2);
-    syslog(LOG_INFO, "Recieved SIGUSR2. Attempting dynamic patch.");
-    status = do_patch();
-    if (status != DPATCH_STATUS_OK)
-    {
-        syslog(LOG_ERR, "Dynamic patch failed to apply: %s", str_status(status));
-    }
-    else 
-    {
-        syslog(LOG_INFO, "Dynamic patch applied successfully.");
-    }
+    syslog(LOG_INFO, "Recieved SIGUSR2. Requesting patch.");
+    patch_pending = true;
 }
 
 /**
@@ -102,6 +113,7 @@ extern unsigned int la_version(unsigned int version)
 extern void la_preinit(uintptr_t* cookie)
 {
     UNUSED(cookie);
+    pthread_t patch_thread;
     patch_script_t* patch_script = NULL;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     signal(SIGUSR2, sigusr2_handler);
@@ -109,4 +121,5 @@ extern void la_preinit(uintptr_t* cookie)
     EXIT_ON_ERROR(patch_script_new(&patch_script));
     EXIT_ON_ERROR(patch_script_parse(patch_script, pending_patch));
     patch_script_free(patch_script);
+    pthread_create(&patch_thread, NULL, &patch_loop, NULL);
 }

@@ -7,6 +7,10 @@ project(
     LANGUAGES C
 )
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+
+find_package(Threads REQUIRED)
+
 add_library(dpatch SHARED
     ${PROJECT_SOURCE_DIR}/main.c
     ${PROJECT_SOURCE_DIR}/x64_code_generator.c
@@ -19,7 +23,7 @@ add_library(dpatch SHARED
 
 set_property(TARGET dpatch PROPERTY C_STANDARD 99)
 
-target_link_libraries(dpatch PUBLIC ${CMAKE_DL_LIBS})
+target_link_libraries(dpatch PRIVATE ${CMAKE_DL_LIBS} Threads::Threads)
 
 target_include_directories(dpatch PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
