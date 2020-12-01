@@ -28,8 +28,11 @@
  */
 #define UNUSED(x) ((void)(x))
 
-patch_set_t* pending_patch = NULL;
-
+/**
+ * Signals a pending patch to the patcher-thread.
+ *
+ * @note This should be set by the patch signal handler.
+ */
 bool patch_pending = false;
 
 /**
@@ -43,15 +46,39 @@ bool patch_pending = false;
  */
 dpatch_status do_patch()
 {
-    printf("Doing path...\n");
+    syslog(LOG_INFO, "Dynamic patch initiated.");
+    patch_script_t* patch_script = NULL;
+    patch_set_t* patch_set = NULL;
+    /* 
+     * Exit on error shouldn't be the default behaviour in
+     * the long term. We do this as a temporary solution to
+     * test apporaches without robust error handling.
+     */
+    EXIT_ON_ERROR(patch_script_new(&patch_script));
+    EXIT_ON_ERROR(patch_set_new(&patch_set));
+    EXIT_ON_ERROR(patch_script_parse(patch_script, patch_set));
+    LOG_ON_ERROR(patch_set_apply(patch_set));
+    patch_script_free(patch_script);
+    patch_set_free(patch_set);
+    syslog(LOG_INFO, "Dypamic patch applied.");
     return DPATCH_STATUS_OK;
-    /*assert(pending_patch != NULL);
-    LOG_ON_ERROR(patch_set_apply(pending_patch));
-    patch_set_free(pending_patch);
-    pending_patch = NULL;
-    return DPATCH_STATUS_OK; */
 }
 
+/**
+ * Wait on a patch, the attempt to apply it.
+ *
+ * `patch_loop` waits for patches to be avalible, then
+ * applies them.
+ * 
+ * @note `patch_loop` is expected to run in its own
+ * thread.
+ * 
+ * @see `sigusr2_handler` for an explaination of why
+ * should `patch_loop` run in a seperate thread.
+ *
+ * @return A pthreads status code. We do not return but the
+ * return type is required by the pythreads API.
+ */
 void* patch_loop()
 {
     while (true)
@@ -68,6 +95,12 @@ void* patch_loop()
 
 /**
  * SIGUSR2 initiates a dynamic path.
+ *
+ * @note We apply the patch from another thread, rather
+ * than from the signal handler, because many functions
+ * used by `dpatch` are not reentrant - such as `malloc`.
+ * Calling them from inside the signal's interrupt context
+ * can cause very undefined behaviour.
  *
  * @param signal The incomming singal to handle.
  */
@@ -105,8 +138,9 @@ extern unsigned int la_version(unsigned int version)
  * Preinit hook to be called before the target's `main` is
  * executed.
  *
- * The pre-init hook sets up the singal handler for dynamic
- * patching.
+ * The pre-init hook sets up a signal handler to listen for
+ * dynamic patches, and a patcher thread to apply incomming
+ * dynamic patches.
  *
  * @param cookie The object at the head of the link map.
  */
@@ -114,12 +148,7 @@ extern void la_preinit(uintptr_t* cookie)
 {
     UNUSED(cookie);
     pthread_t patch_thread;
-    patch_script_t* patch_script = NULL;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     signal(SIGUSR2, sigusr2_handler);
-    EXIT_ON_ERROR(patch_set_new(&pending_patch));
-    EXIT_ON_ERROR(patch_script_new(&patch_script));
-    EXIT_ON_ERROR(patch_script_parse(patch_script, pending_patch));
-    patch_script_free(patch_script);
     pthread_create(&patch_thread, NULL, &patch_loop, NULL);
 }
