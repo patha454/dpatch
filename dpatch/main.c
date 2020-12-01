@@ -38,11 +38,9 @@ bool patch_pending = false;
 /**
  * Applies a pending patch.
  *
- * @warning `do_patch` assumes a patch has been parsed.
- *
- * The patch parsing functions are not reentrant, so
- * they must be called outside of the signal handler,
- * or made reentrant.
+ * @note The patch parsing functions are not reentrant, so
+ * they must be called outside of the signal handler, or
+ * made reentrant.
  */
 dpatch_status do_patch()
 {
