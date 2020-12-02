@@ -68,7 +68,7 @@ void patch_set_free(patch_set_t* patch_set)
     {
         for(size_t i = 0; i < patch_set->length; i++)
         {
-            free(patch_set->patches[i]);
+            patch_free(patch_set->patches[i]);
         }
         free(patch_set->patches);
     }
