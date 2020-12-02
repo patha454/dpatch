@@ -66,6 +66,10 @@ void patch_set_free(patch_set_t* patch_set)
     assert(patch_set != NULL);
     if (patch_set->patches != NULL)
     {
+        for(size_t i = 0; i < patch_set->length; i++)
+        {
+            free(patch_set->patches[i]);
+        }
         free(patch_set->patches);
     }
     patch_set->patches = NULL;
