@@ -57,33 +57,21 @@ dpatch_status do_patch()
 }
 
 /**
- * Wait on a patch, the attempt to apply it.
+ * Applies a patch then exits the current thread.
  *
- * `patch_loop` waits for patches to be avalible, then
- * applies them.
- * 
- * @note `patch_loop` is expected to run in its own
- * thread.
- * 
- * @see `sigusr2_handler` for an explaination of why
- * should `patch_loop` run in a seperate thread.
+ * `patch_in_thread` is indended to be called from a
+ * transient thread spawed to execute a patch.
  *
- * @return A pthreads status code. We do not return but the
- * return type is required by the pythreads API.
+ * @param args Unused, but required by the `pthreads` API.
+ * @return Nothing - required by the P
  */
-void* patch_loop()
+void* patch_in_thread(void* args)
 {
-    while (true)
-    {
-        if (patch_pending)
-        {
-            patch_pending = false;
-            do_patch();
-        }
-        sleep(1);
-    }
-    return NULL;
+    UNUSED(args);
+    int status = (int) do_patch();
+    pthread_exit(&status);
 }
+
 
 /**
  * SIGUSR2 initiates a dynamic path.
@@ -98,9 +86,10 @@ void* patch_loop()
  */
 void sigusr2_handler(int signal)
 {
+    pthread_t patch_thread = 0;
     assert(signal == SIGUSR2);
     syslog(LOG_INFO, "Recieved SIGUSR2. Requesting patch.");
-    patch_pending = true;
+    pthread_create(&patch_thread, NULL, &patch_in_thread, NULL);
 }
 
 /**
@@ -131,7 +120,6 @@ extern unsigned int la_version(unsigned int version)
  * executed.
  *
  * The pre-init hook sets up a signal handler to listen for
- * dynamic patches, and a patcher thread to apply incomming
  * dynamic patches.
  *
  * @param cookie The object at the head of the link map.
@@ -139,8 +127,6 @@ extern unsigned int la_version(unsigned int version)
 extern void la_preinit(uintptr_t* cookie)
 {
     UNUSED(cookie);
-    pthread_t patch_thread;
     openlog(PROGRAM_IDENT, LOG_PERROR, LOG_USER);
     signal(SIGUSR2, sigusr2_handler);
-    pthread_create(&patch_thread, NULL, &patch_loop, NULL);
 }
