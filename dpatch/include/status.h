@@ -119,7 +119,7 @@
 typedef enum
 {
     /** Success. */
-    DPATCH_STATUS_OK,
+    DPATCH_STATUS_OK = 0,
 
     /** General or unspecified error. */
     DPATCH_STATUS_ERROR,
