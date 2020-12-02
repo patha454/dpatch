@@ -59,7 +59,7 @@ dpatch_status patch_script_new(patch_script_t** new)
 {
     assert(new != NULL);
     dpatch_status status = DPATCH_STATUS_OK;
-    patch_script_t* handle = malloc(sizeof*handle);
+    patch_script_t* handle = calloc(1, sizeof *handle);
     *new = handle;
     if (handle == NULL)
     {
@@ -109,7 +109,7 @@ dpatch_status patch_script_path
     assert(path != NULL);
     if (patch_script->script_path == NULL)
     {
-        patch_script->script_path = malloc(strlen(path));
+        patch_script->script_path = calloc(1, strlen(path) + 1);
     }
     else if (
         strlen(patch_script->script_path) < strlen(path)
