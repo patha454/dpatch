@@ -117,7 +117,7 @@ dpatch_status patch_script_path
     {
         patch_script->script_path = realloc(
             patch_script->script_path,
-            strlen(path)
+            strlen(path) + 1
         );
     }
     if (patch_script->script_path == NULL)
