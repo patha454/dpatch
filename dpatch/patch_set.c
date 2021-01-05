@@ -133,7 +133,7 @@ dpatch_status patch_set_add_operation
         PROPAGATE_ERROR(patch_set_grow(patch_set), status);
     }
     PROPAGATE_ERROR(patch_new(&new_patch), status);
-    PROPAGATE_ERROR(patch_operation(new_patch, op, old, new), status);
+    PROPAGATE_ERROR(patch_operation(new_patch, op, old, new, NULL), status);
     patch_set->patches[patch_set->length++] = new_patch;
     return DPATCH_STATUS_OK;
 }
