@@ -116,6 +116,7 @@ dpatch_status patch_set_grow(patch_set_t* patch_set)
  * @param op Patch operation to perform.
  * @param old Symbol to be updated.
  * @param new Symbol to update to.
+ * @param lib Library new symbol is in.
  * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
 dpatch_status patch_set_add_operation
@@ -123,7 +124,8 @@ dpatch_status patch_set_add_operation
     patch_set_t* patch_set,
     dpatch_operation op,
     char* old,
-    char* new
+    char* new,
+    char* lib
 )
 {
     patch_t* new_patch = NULL;
@@ -133,7 +135,7 @@ dpatch_status patch_set_add_operation
         PROPAGATE_ERROR(patch_set_grow(patch_set), status);
     }
     PROPAGATE_ERROR(patch_new(&new_patch), status);
-    PROPAGATE_ERROR(patch_operation(new_patch, op, old, new, NULL), status);
+    PROPAGATE_ERROR(patch_operation(new_patch, op, old, new, lib), status);
     patch_set->patches[patch_set->length++] = new_patch;
     return DPATCH_STATUS_OK;
 }

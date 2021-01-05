@@ -8,6 +8,7 @@ project(
 )
 
 add_executable(self_patch ${PROJECT_SOURCE_DIR}/self_patch.c)
+add_library(charlie SHARED ${PROJECT_SOURCE_DIR}/charlie.c)
 
 # `dpatch's` targets must expose all their symbols as dynamic symbols so
 # `dpatch can manipulate them with `dlopen` and friends, as well as to
@@ -27,6 +28,11 @@ configure_file(
     COPYONLY
 )
 
+configure_file(
+    ${PROJECT_SOURCE_DIR}/external_patch.patch
+    ${PROJECT_BINARY_DIR}/external_patch.patch
+    COPYONLY
+)
 install(
     TARGETS
         self_patch
@@ -36,8 +42,15 @@ install(
 )
 
 install(
+    TARGETS
+        charlie
+    LIBRARY
+)
+
+install(
     FILES
         ${PROJECT_BINARY_DIR}/self_patch.patch
+        ${PROJECT_BINARY_DIR}/external_patch.patch
     TYPE SYSCONF
 )
 

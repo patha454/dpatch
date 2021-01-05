@@ -144,12 +144,16 @@ dpatch_status parse_script_line
     char operation_str[PATCH_SCRIPT_MAX_LINE_LEN];
     char op_from[PATCH_SCRIPT_MAX_LINE_LEN];
     char op_to[PATCH_SCRIPT_MAX_LINE_LEN];
+    char* new_symbol_name = NULL;
+    char* new_symbol_lib = NULL;
     dpatch_operation operation = DPATCH_OP_NOP;
     dpatch_status status = DPATCH_STATUS_OK;
     if (sscanf(line, "%s %s %s", operation_str, op_from, op_to) != 3)
     {
         return DPATCH_STATUS_ESYNTAX;
     }
+    new_symbol_name = strtok(op_to, ":");
+    new_symbol_lib = strtok(NULL, ":");
     PROPAGATE_ERROR(
         str_to_patch_operation(operation_str, &operation),
         status
@@ -160,7 +164,8 @@ dpatch_status parse_script_line
             patch_set,
             operation,
             op_from,
-            op_to
+            new_symbol_name,
+            new_symbol_lib
         ),
         status
     );

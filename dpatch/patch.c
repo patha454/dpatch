@@ -160,9 +160,11 @@ dpatch_status patch_replace_function_internal(patch_t* patch)
     assert(patch != NULL);
     intptr_t patch_from = (intptr_t) NULL;
     intptr_t patch_to = (intptr_t) NULL;
+    void* program_handle = NULL;
     void* library_handle = NULL;
     machine_code_t* machine_code = NULL;
     dpatch_status status = DPATCH_STATUS_OK;
+    program_handle = dlopen(NULL, RTLD_LAZY);
     if (patch->library)
     {
         library_handle = dlopen(patch->library, RTLD_LAZY);
@@ -171,11 +173,11 @@ dpatch_status patch_replace_function_internal(patch_t* patch)
     {
         library_handle = dlopen(NULL, RTLD_LAZY);
     }
-    if (library_handle == NULL)
+    if (library_handle == NULL || program_handle == NULL)
     {
         return DPATCH_STATUS_EDYN;
     }
-    patch_from = (intptr_t) dlsym(library_handle, patch->old_symbol);
+    patch_from = (intptr_t) dlsym(program_handle, patch->old_symbol);
     patch_to = (intptr_t) dlsym(library_handle, patch->new_symbol);
     if (patch_from == (intptr_t) NULL || patch_to == (intptr_t) NULL)
     {
@@ -185,7 +187,11 @@ dpatch_status patch_replace_function_internal(patch_t* patch)
     PROPAGATE_ERROR(append_long_jump(machine_code, patch_to), status);
     PROPAGATE_ERROR(machine_code_insert(machine_code, patch_from), status);
     machine_code_free(machine_code);
-    dlclose(library_handle);
+    /* 
+     * We do not `dlclose` the library, otherwise the loader may evict
+     * its code from memory, causing seg faults.
+     */
+    dlclose(program_handle);
     return DPATCH_STATUS_OK;
 }
 
