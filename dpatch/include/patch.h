@@ -69,13 +69,15 @@ dpatch_status patch_new(patch_t** new);
  * @param op Patch operation to perform.
  * @param old_sym Old symbol to be replaced.
  * @param new_sym New symbol to patch in.
+ * @param library Library containing the new symbol.
  */
 dpatch_status patch_operation
 (
     patch_t* patch,
     dpatch_operation op,
     char* old_sym,
-    char* new_sym
+    char* new_sym,
+    char* library
 );
 
 /**

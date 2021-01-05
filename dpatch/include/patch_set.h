@@ -51,6 +51,7 @@ void patch_set_free(patch_set_t* patch_set);
  * @param op Patch operation to perform.
  * @param old Symbol to be updated.
  * @param new Symbol to update to.
+ * @param lib Library the new symbol is in.
  * @return `DPATCH_STATUS_OK`, or an error on failure.
  */
 dpatch_status patch_set_add_operation
@@ -58,7 +59,8 @@ dpatch_status patch_set_add_operation
     patch_set_t* patch_set,
     dpatch_operation op,
     char* old,
-    char* new
+    char* new,
+    char* lib
 );
 
 /**

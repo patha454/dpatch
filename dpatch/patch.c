@@ -23,6 +23,9 @@
  */
 struct patch
 {
+    /** Name of the library containing the new symbol. */
+    char* library;
+
     /** The new of the old symbol to replace. */
     char* old_symbol;
 
@@ -71,6 +74,7 @@ dpatch_status patch_new(patch_t** new)
     {
         return DPATCH_STATUS_ENOMEM;
     }
+    handle->library = NULL;
     handle->old_symbol = NULL;
     handle->new_symbol = NULL;
     handle->operation = DPATCH_OP_NOP;
@@ -85,6 +89,10 @@ dpatch_status patch_new(patch_t** new)
 void patch_free(patch_t* patch)
 {
     assert(patch != NULL);
+    if (patch->library != NULL)
+    {
+        free(patch->library);
+    }
     if (patch->old_symbol != NULL)
     {
         free(patch->old_symbol);
@@ -103,13 +111,15 @@ void patch_free(patch_t* patch)
  * @param op Patch operation to perform.
  * @param old_sym Old symbol to be replaced.
  * @param new_sym New symbol to patch in.
+ * @param library Library containing the new symbol.
  */
 dpatch_status patch_operation
 (
     patch_t* patch,
     dpatch_operation op,
     char* old_sym,
-    char* new_sym
+    char* new_sym,
+    char* library
 )
 {
     assert(patch != NULL);
@@ -122,8 +132,18 @@ dpatch_status patch_operation
     patch->new_symbol = malloc(strlen(new_sym) + 1);
     if (patch->new_symbol == NULL)
     {
-        free (patch->old_symbol);
+        free(patch->old_symbol);
         return DPATCH_STATUS_ENOMEM;
+    }
+    if (library != NULL) 
+    {
+        patch->library = malloc(strlen(library) + 1);
+        if (patch->library == NULL)
+        {
+            free(patch->old_symbol);
+            return DPATCH_STATUS_ENOMEM;
+        }
+        strcpy(patch->library, library);
     }
     strcpy(patch->new_symbol, new_sym);
     strcpy(patch->old_symbol, old_sym);
@@ -140,15 +160,25 @@ dpatch_status patch_replace_function_internal(patch_t* patch)
     assert(patch != NULL);
     intptr_t patch_from = (intptr_t) NULL;
     intptr_t patch_to = (intptr_t) NULL;
-    void* process_handle = dlopen(NULL, RTLD_LAZY);
+    void* program_handle = NULL;
+    void* library_handle = NULL;
     machine_code_t* machine_code = NULL;
     dpatch_status status = DPATCH_STATUS_OK;
-    if (process_handle == NULL)
+    program_handle = dlopen(NULL, RTLD_LAZY);
+    if (patch->library)
+    {
+        library_handle = dlopen(patch->library, RTLD_LAZY);
+    }
+    else
+    {
+        library_handle = dlopen(NULL, RTLD_LAZY);
+    }
+    if (library_handle == NULL || program_handle == NULL)
     {
         return DPATCH_STATUS_EDYN;
     }
-    patch_from = (intptr_t) dlsym(process_handle, patch->old_symbol);
-    patch_to = (intptr_t) dlsym(process_handle, patch->new_symbol);
+    patch_from = (intptr_t) dlsym(program_handle, patch->old_symbol);
+    patch_to = (intptr_t) dlsym(library_handle, patch->new_symbol);
     if (patch_from == (intptr_t) NULL || patch_to == (intptr_t) NULL)
     {
         return DPATCH_STATUS_EDYN;
@@ -157,6 +187,11 @@ dpatch_status patch_replace_function_internal(patch_t* patch)
     PROPAGATE_ERROR(append_long_jump(machine_code, patch_to), status);
     PROPAGATE_ERROR(machine_code_insert(machine_code, patch_from), status);
     machine_code_free(machine_code);
+    /* 
+     * We do not `dlclose` the library, otherwise the loader may evict
+     * its code from memory, causing seg faults.
+     */
+    dlclose(program_handle);
     return DPATCH_STATUS_OK;
 }
 
